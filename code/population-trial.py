@@ -33,7 +33,7 @@ def get_gaussian(x, mu, sigma):
    return 1/(sigma * np.sqrt(2 * np.pi)) * np.exp( - (x - mu)**2 / (2 * sigma**2) )
 
 num_cues = 4
-neurons_per_cue = 125
+neurons_per_cue = 250
 
 stim_cog = np.zeros((num_cues,neurons_per_cue)) #For computational simplicity
 stim_norm = np.zeros((num_cues,neurons_per_cue)) #For computational simplicity
@@ -50,16 +50,9 @@ for i in range(num_cues):
     x = []
     stim = np.zeros(neurons_per_cue) 
     mu = mu_cues[i]
-    d = np.random.normal(mu+1, sigma, neurons_per_cue-2)
-    s = np.sort(d)
-    stim[0] = get_gaussian(mu - neurons_per_cue/2, mu, sigma)
-    x.append(0)
-    for j in range(neurons_per_cue-2):
-        stim[j+1] = get_gaussian(s[j], mu, sigma)
-        x.append(s[j])
-    stim[neurons_per_cue - 1] = get_gaussian(mu + neurons_per_cue/2, mu, sigma)
-    x.append(neurons_per_cue - 1)
-    plt.plot(x, stim, linewidth=2, color='r')
+    for j in range(neurons_per_cue):
+        index = (mu - neurons_per_cue/2) + j
+        stim[j] = get_gaussian(index , mu, sigma)
     stim_norm[i] = stim
 
 
@@ -186,5 +179,9 @@ if not 1:
 if not 1:
     display_all(history, 3.0, "figure-1bis.pdf")
 
+plt.figure(1)
+plt.subplot(221)
+plt.plot(range(num_cues * neurons_per_cue), stim_cog.reshape(num_cues * neurons_per_cue), linewidth=2)
+plt.subplot(222)
 plt.plot(range(num_cues * neurons_per_cue), stim_cog.reshape(num_cues * neurons_per_cue), linewidth=2)
 plt.show()
