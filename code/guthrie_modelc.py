@@ -9,7 +9,7 @@ Vh         =  16.0
 Vc         =   3.0
 
 popPerCueSTR = 1 
-ctxTostr =  64
+ctxTostr = 16 
 strToctx = 1.0/ctxTostr
 popPerCueCTX = ctxTostr * popPerCueSTR 
 

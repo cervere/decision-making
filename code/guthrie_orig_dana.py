@@ -73,7 +73,7 @@ def get2DExtInput():
 @clock.at(500*millisecond)
 def set_trial(t):
     c1,c2 = 0,1 
-    m1,m2 = 0,1
+    m1,m2 = 2,3
     cp1, cp2 = c1 * popPerCueCTX, c2 * popPerCueCTX
     mp1, mp2 = m1 * popPerCueCTX, m2 * popPerCueCTX
     CTX.cog['Iext'] = 0
@@ -85,6 +85,9 @@ def set_trial(t):
     CTX.mot['Iext'][mp2:mp2+popPerCueCTX] = getExtInput()
     CTX.ass['Iext'][cp1:cp1+popPerCueCTX,mp1:mp1+popPerCueCTX] = get2DExtInput()
     CTX.ass['Iext'][cp2:cp2+popPerCueCTX,mp2:mp2+popPerCueCTX] = get2DExtInput()
+    plt.figure(1)
+    plt.subplot(211)
+    plot_per_neuron(CTX.cog['Iext'], CTX.mot['Iext'], "Iext", "External input - Cortex - across trial")
 
 
 def print_act(t):
@@ -107,12 +110,37 @@ def check_trial(t):
     print_act(t)
 
 
+def plot_per_neuron(cog, mot, ylabel, title):
+    plt.plot(1+np.arange(numOfCues*popPerCueCTX), cog, c='r', label='cognitive cortex')
+    plt.plot(1+np.arange(numOfCues*popPerCueCTX), mot, c='b', label='motor cortex')
+    plt.xlabel("Neuron label")
+    plt.ylabel(ylabel)
+    plt.xlim(1,numOfCues*popPerCueCTX)
+    dire = ['Up', 'Right', 'Down', 'Left']
+    shape = ['\/', '<>', '+', 'O']
+    n,l = [], []
+    n.append(0)
+    for i in range(numOfCues):
+        n.append(n[2*i] + popPerCueCTX/2)
+        n.append(n[2*i+1] + popPerCueCTX/2 )
+    n[0] = 1
+    l.append(str(1) + '\n(\n(')
+    for i in range(np.array(n).size):
+        if i%2 == 1:
+            l.append(str(n[i])+ '\n' + shape[i/2] +'\n'+ dire[i/2])
+        elif i > 0 and i < (np.array(n).size - 1) : l.append(str(n[i])+'\n)(\n)(')
+    l.append(str(n[i]) + '\n)')
+    plt.xticks(n,l)
+    plt.title(title)
+    plt.legend(frameon=False, loc='upper center')
 
 @clock.at(2500*millisecond)
 def reset_trial(t):
     print sumActivity(CTX.cog['U'])
     print sumActivity(CTX.mot['U'])
-    plt.plot(1+np.arange(numOfCues*popPerCueCTX), np.maximum(CTX.mot['U'],0.0))
+    plt.figure(1)
+    plt.subplot(212)
+    plot_per_neuron(np.maximum(CTX.cog['U'],0.0), np.maximum(CTX.mot['U'],0.0), "Activity (Hz)", 'Activity of each neuron - Cortex - end of trial')
     CTX.cog['Iext'] = 0
     CTX.mot['Iext'] = 0
     CTX.ass['Iext'] = 0
@@ -132,5 +160,5 @@ def register(t):
 
 reset()
 run(time=duration,dt=dt)
-
+plt.tight_layout()
 display_ctx(history, duration)
