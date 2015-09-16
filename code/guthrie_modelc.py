@@ -8,12 +8,14 @@ Vmax       =  20.0
 Vh         =  16.0
 Vc         =   3.0
 
-popPerCueSTR = 1 
-ctxTostr = 16 
+popPerCueSTR = 16
+ctxTostr = 1 
 strToctx = 1.0/ctxTostr
 popPerCueCTX = ctxTostr * popPerCueSTR 
 
-gpiTostr = 1.0/popPerCueSTR #Assuming GPi has one per cue
+gpiToStr = 1.0/popPerCueSTR #Assuming GPi has one neuron per cue
+ctxp = (1.0*popPerCueSTR)/popPerCueCTX 
+ctxth = 1.0/popPerCueCTX #Assuming THL has one neuron per cue 
 
 tau = 0.01
 CTX_tau, CTX_rest, CTX_noise = tau, -3.0 , 0.010
@@ -32,9 +34,6 @@ def getCTXGain():
     else:
         return 1.775
 
-ctxg = 1
-#getCTXGain()
-
 def getGain():
    for i in 1+np.arange(10):
        j = 2 * i
@@ -42,9 +41,6 @@ def getGain():
            return 0.5/(3.0**i)
    return 1
 
-ctxp = 1.0/popPerCueCTX
-stcxg = 1 
-#getGain()
 
 def identity(x):
     if x < 0.0: return 0.0
@@ -81,11 +77,11 @@ class Structure:
 
     def __init__(self, structure, pop=4):
         if structure == 'CTX':
-            self._cog = Group(pop, 'dV/dt = (-V + (Isyn) + (ctxg * Iext) - CTX_rest)/CTX_tau ; U = unoise(clamp(V) , CTX_noise); Z=U*ctxp; Isyn ; Iext ')
-            self._mot = Group(pop, 'dV/dt = (-V + (Isyn) + (ctxg * Iext) - CTX_rest)/CTX_tau ; U = unoise(clamp(V) , CTX_noise); Z=U*ctxp; Isyn ; Iext ')
+            self._cog = Group(pop, 'dV/dt = (-V + Isyn + Iext - CTX_rest)/CTX_tau ; U = unoise(clamp(V) , CTX_noise); Z=U*ctxp; T=U*ctxth; Isyn ; Iext ')
+            self._mot = Group(pop, 'dV/dt = (-V + Isyn + Iext - CTX_rest)/CTX_tau ; U = unoise(clamp(V) , CTX_noise); Z=U*ctxp; T=U*ctxth; Isyn ; Iext ')
         elif structure == 'STR':
-            self._cog = Group(pop, 'dV/dt = (-V + Isyn + Iext - STR_rest)/STR_tau ; U = unoise(sigmoid(V) , STR_noise); Z=U/(1.0*popPerCueSTR); Isyn ; Iext ')
-            self._mot = Group(pop, 'dV/dt = (-V + Isyn + Iext - STR_rest)/STR_tau ; U = unoise(sigmoid(V) , STR_noise); Z=U/(1.0*popPerCueSTR); Isyn ; Iext ')
+            self._cog = Group(pop, 'dV/dt = (-V + Isyn + Iext - STR_rest)/STR_tau ; U = unoise(sigmoid(V) , STR_noise); Z=U*gpiToStr; Isyn ; Iext ')
+            self._mot = Group(pop, 'dV/dt = (-V + Isyn + Iext - STR_rest)/STR_tau ; U = unoise(sigmoid(V) , STR_noise); Z=U*gpiToStr; Isyn ; Iext ')
         elif structure == 'GPI':
             self._cog = Group(pop, 'dV/dt = (-V + Isyn + Iext - GPI_rest)/GPI_tau ; U = unoise(clamp(V) , GPI_noise); Isyn ; Iext ')
             self._mot = Group(pop, 'dV/dt = (-V + Isyn + Iext - GPI_rest)/GPI_tau ; U = unoise(clamp(V) , GPI_noise); Isyn ; Iext ')
@@ -121,9 +117,9 @@ class AssociativeStructure(Structure):
     def __init__(self, structure, pop=4):
 	Structure.__init__(self, structure, pop)
         if structure == 'CTX':
-            self._ass = Group((pop,pop), 'dV/dt = (-V + Isyn + (ctxg * Iext) - CTX_rest)/CTX_tau ; U = unoise(clamp(V) , CTX_noise); Z=U*ctxp*ctxp; Isyn ; Iext ')
+            self._ass = Group((pop,pop), 'dV/dt = (-V + Isyn + Iext - CTX_rest)/CTX_tau ; U = unoise(clamp(V) , CTX_noise); Z=U*ctxp*ctxp; T=U*ctxth*ctxth; Isyn ; Iext ')
         elif structure == 'STR':
-            self._ass = Group((pop,pop), 'dV/dt = (-V + Isyn + Iext - STR_rest)/STR_tau ; U = unoise(sigmoid(V) , STR_noise); Z=U/(1.0*popPerCueSTR*popPerCueSTR); Isyn ; Iext ')
+            self._ass = Group((pop,pop), 'dV/dt = (-V + Isyn + Iext - STR_rest)/STR_tau ; U = unoise(sigmoid(V) , STR_noise); Z=U*gpiToStr*gpiToStr; Isyn ; Iext ')
 
     @property
     def ass(self):
@@ -144,6 +140,22 @@ def OneToOneWeights(sourcesize, targetsize):
     for i in range(targetsize):
         start = i * each
         kernel[i, start:start+each] = 1
+    return kernel
+
+def AscToAscWeights(sourceshape, targetshape):
+    (p, q) = sourceshape
+    sourcesize = p * q 
+    (m, n) = targetshape
+    targetsize = m * n
+    r = p/m
+    c = q/n
+    each = sourcesize / targetsize
+    kernel = np.zeros((targetsize, sourcesize))
+    for i in range(m):
+        for j in range(n):
+            cell = np.zeros((p, q))
+            cell[r*i:r*i+r,c*j:c*j+c] = 1
+            kernel[i*n+j] = np.reshape(cell, (1, cell.size)) 
     return kernel
 
 def OneToAllWeights(sourcesize, targetsize):
@@ -196,8 +208,7 @@ def AssToMotWeights(sourceshape, targetsize):
     kernel = np.zeros((targetsize, sourcesize))
     for i in range(targetsize):
         ass = np.zeros((m, n))
-        start = i * eachmot * m 
-        ass[:,i] = 1 
+        ass[:,i*eachmot:i*eachmot+eachmot] = 1 
         kernel[i, :] = np.reshape(ass,(1,ass.size))
     return kernel
 
@@ -216,6 +227,10 @@ def OneToOne(source, target, gain=1.0, clipWeights=False):
         kernel = np.transpose(OneToOneWeights(target.size, source.size))
     else:
         kernel = OneToOneWeights(source.size, target.size)
+    return getConnection(source, target, gain * kernel, clipWeights)
+
+def AscToAsc(source, target, gain=1.0, clipWeights=False):
+    kernel = AscToAscWeights(source.shape, target.shape)
     return getConnection(source, target, gain * kernel, clipWeights)
 
 def OneToAll(source, target, gain=1.0, clipWeights=False):

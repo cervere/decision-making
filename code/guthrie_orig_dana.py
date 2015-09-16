@@ -22,11 +22,11 @@ THL = Structure("THL")
 
 OneToOne(CTX.cog('Z'), STR.cog('Isyn'), 1.0, clipWeights=True)
 OneToOne(CTX.mot('Z'), STR.mot('Isyn'), 1.0, clipWeights=True)
-OneToOne(CTX.ass('Z'), STR.ass('Isyn'), 1.0, clipWeights=True) 
+AscToAsc(CTX.ass('Z'), STR.ass('Isyn'), 1.0, clipWeights=True) 
 CogToAss(CTX.cog('Z'), STR.ass('Isyn'), gain=+0.2, clipWeights=True)
 MotToAss(CTX.mot('Z'), STR.ass('Isyn'), gain=+0.2, clipWeights=True)
-OneToOne(CTX.cog('Z'), STN.cog('Isyn'), 1.0) 
-OneToOne(CTX.mot('Z'), STN.mot('Isyn'), 1.0)
+OneToOne(CTX.cog('T'), STN.cog('Isyn'), 1.0) 
+OneToOne(CTX.mot('T'), STN.mot('Isyn'), 1.0)
 OneToOne(STR.cog('Z'), GPI.cog('Isyn'), -2.0) 
 OneToOne(STR.mot('Z'), GPI.mot('Isyn'), -2.0)
 AssToCog(STR.ass('Z'), GPI.cog('Isyn'), gain=-2.0)
@@ -37,8 +37,8 @@ OneToOne(GPI.cog('U'), THL.cog('Isyn'), -0.5)
 OneToOne(GPI.mot('U'), THL.mot('Isyn'), -0.5)
 OneToOne(THL.cog('U'), CTX.cog('Isyn'), +1.0) 
 OneToOne(THL.mot('U'), CTX.mot('Isyn'), +1.0)
-OneToOne(CTX.cog('Z'), THL.cog('Isyn'), 0.4) 
-OneToOne(CTX.mot('Z'), THL.mot('Isyn'), 0.4)
+OneToOne(CTX.cog('T'), THL.cog('Isyn'), 0.4) 
+OneToOne(CTX.mot('T'), THL.mot('Isyn'), 0.4)
 
 dtype = [ ("CTX", [("mot", float, numOfCues), ("cog", float, numOfCues), ("ass", float, numOfCues*numOfCues)]),
           ("STR", [("mot", float, numOfCues), ("cog", float, numOfCues), ("ass", float, numOfCues*numOfCues)]),
@@ -91,21 +91,22 @@ def set_trial(t):
 
 
 def print_act(t):
-    print "%d CTX V %s" % (t*1000, sumActivity(CTX.mot['V']))
-    print "%d CTX Isyn %s" % (t*1000, sumActivity(CTX.mot['Isyn']))
     print "%d CTX U %s" % (t*1000, sumActivity(CTX.mot['U']))
+    print "%d CTX Z %s" % (t*1000, sumActivity(CTX.mot['Z']))
     print "%d STR Isyn %s" %(t*1000, sumActivity(STR.mot['Isyn']))
+    print "%d STR U %s" %(t*1000, sumActivity(STR.mot['U']))
+    print "%d GPI Isyn %s" %(t*1000, sumActivity(GPI.mot['Isyn']))
     #print "%d STR U %s" % (t*1000, sumActivity(STR.mot['U']))
 
 @clock.at(1006*millisecond)
 def check_trial(t):
     print_act(t)
 
-@clock.at(511*millisecond)
+@clock.at(101*millisecond)
 def check_trial(t):
     print_act(t)
 
-@clock.at(501*millisecond)
+@clock.at(51*millisecond)
 def check_trial(t):
     print_act(t)
 
