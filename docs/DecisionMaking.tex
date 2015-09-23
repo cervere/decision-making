@@ -1,59 +1,194 @@
 \documentclass[11pt]{article}
 \usepackage{graphicx}
+\usepackage{caption}
 \usepackage[multiple]{footmisc}
 \usepackage{cleveref}
+\usepackage{lipsum}
+\usepackage{wrapfig}
+\usepackage{subfig}
+\usepackage{tabularx}
+\usepackage{amsmath}
+\usepackage[font=scriptsize,labelfont=bf]{caption}
 \crefformat{footnote}{#2\footnotemark[#1]#3}
 %Gummi|065|=)
 \title{\textbf{Action selection - Guthrie Model}}
-\author{Bhargav Teja Nallapu\\
-		}
-\date{}
+\author{Bhargav Teja Nallapu}
 \begin{document}
 
 \maketitle
 
+\listoffigures
+
 \section{Context}
+Basal Ganglia (BG) are known to be responsible for decision making and learning in a changing environment.\emph{Gurthrie et al,} 2013 proposes a computational model for two-level action selection with two parallel functional loops each for cognitive and motor decision making. Each loop consists of a positive feedback direct pathway and a negative feedback hyper-direct pathway  via the subthalmic nucleus to globus pallidus. In addition to the cognitive and motor ensembles, there are associative areas in cortex and striatum. The divergence and reconvergence of the direct pathway facilitates the information transfer between the cognitive and motor loops and hence providing a bias to the motor decision.
+\par 
 
-This document refers to \emph{model}\footnote{http://www.labri.fr/perso/nrougier/downloads/ReproducibleScience.pdf} implemented by \emph{Meropi Topalidou}\footnote{\label{imn}Institute of Neurodegenerative Diseases - Bordeaux}\footnote{\label{inria}INRIA Bordeaux SUD-OUEST}, \emph{Arthur Leblois}\footnote{Laboratory of Neurophysics and Physiology Universite Paris Descartes}, \emph{Thomas boraud}\cref{imn}, \emph{Nicolas P. Rougier}\cref{imn}\cref{inria} 
+\section{Materials and Methods}
 
-The \emph{model} in its original version models action selection using an N-armed bandit task. With reference to Guthrie et al. (2013), the \emph{model} includes two distinct cognitive and motor loops to account for action selection at multiple levels. However the learning happens only in cognitive loop assuming that its the shape of the cue presented that matters to make a decision depending on the reward associated to it.
-
-\section{Scenarios}
-\subsection{Motor learning}
-Here, we try to test, with motor learning in place, for different learning parameters, how the cognitive and motor weights (for directions) are learnt and how mean performance varies after various sessions.
-
-\subsubsection{Cognitive learning, 250 sessions, 120 trials per session}
-\includegraphics[scale=.6]{figure-1.png}
-\includegraphics[scale=.5]{figure-2.png}
-
-\subsubsection{Cognitive \& Motor learning, 250 sessions, 120 trials per session, standard learning rates}
-\includegraphics[clip=true, trim=15 15 0 15, scale=.5]{weights_same_rates.png}
-\includegraphics[clip=true, trim=15 15 0 15, scale=.5]{perf_same_rates.png}
-
-\subsubsection{Cognitive \& Motor learning, 250 sessions, 240 trials per session, all learning rates cut by half when there is motor learning}
-\includegraphics[clip=true, trim=15 15 0 15, scale=.5]{weights_diff_rates.png}
-\includegraphics[clip=true, trim=15 15 0 15, scale=.5]{perf_diff_rates.png}
-
-\subsection{Rewarding stimulus delayed}
-In this scenario, of every possible combination of 2 cues, less rewarding cue is presented first. After a certain amount of delay, cue more rewarding than the first, is presented. This scenario is tested on a model which is already learnt and which has a performance nearly equal to 1 after learning. Each cue pair is presented 120 times, and mean performance is measured based on the cue selected.
-\\
-It is observed that the delay after which the best rewarding cue is not chosen varies with the difference of the reward probabilities of the two cues presented.
-\subsubsection{Performance 120 trials/stimulus}
-\includegraphics[clip=true, trim=25 35 0 35, scale=.7]{perf_with_delays.png}
-
-\subsection{Less rewarding stimulus with higher salience}
-In this scenario, we consider that a less rewarding (after having learnt) stimulus may be visually more appealing because of its salient features.Both the cues are presented simultaneously, but the less rewarding cue is presented with more salience. In the model, this is achieved by increasing the external input current to the cognitive input of the network corresponding to the less rewarding cue. 
-\\
-Similar to section 2.2, it is observed that the salience level after which the less rewarding cue is chosen over the best, varies with the difference of the reward probabilities of the two cues presented.
-\subsubsection{Performance 120 trials/stimulus}
-\includegraphics[clip=true, trim=25 35 0 35, scale=.7]{perf_with_salience.png}
-
-\section{Week : 10-08-2015}
-\subsection{Scaling up the model}
-So far, the model represented each cue and each direction as a single unit which is a very simplified way of representation. To scale up the model, the idea is that a large number of \emph{neurons} encode each cue input and direction input. This refers to expanding the structures in the model such as the cognitive channels and motor channels in both cortex (CTX) as well as striatum (STR). Eventually the size of the associative channels in both CTX ans STR becomes very large.\par
-The cue input presentation is chosen as a gaussian input over the sub-group of \emph{neurons} representing paricular cue. The output is expected to be a similar activation, but only in the sub-group of neurons representing the desired cue output.\\
+\textbf{\emph{Task}}. The task used in the model to demonstrate action selection is a probabilistic learning task as described in Pasquereau et al. 2007. 4 target shapes are associated with different reward probabilities.
+A trial is a time period in which two of the four possible shapes are randomly chosen and presented (to the subject, \emph{the model} in this case) at two random positions (of the possible positions - up, right, down and left). By the end of trial period, a choice is made by the \emph{model} and the reward is presented (corresponding to the reward probability of the chosen shape). In a single independent trial, the cognitive decision (shape of the cue) and motor decision (direction of position) could be independent of each other.  
 \par
-\includegraphics[clip=true, trim=40 35 0 35, scale=.5]{pop_inputs.png}
-\subsection{TBD next week}
-The plan is to identify all the channels and structures in the model which can be scaled from a simplified representation to a more realistic population of neurons
+\textbf{\emph{Experiment setup}}. The first 500 ms of the trial is for settling of the model. Then the two random cues are presented. A trial is considered to be successful if a decision is made by the \emph{model}, irrespective of the reward received. At any decision-making level of the \emph{model}, each of the four cue shapes and each of the four motor movement directions is represented one unit (neuron) each. Thus in a given trial, when two cue shapes are presented at two different positions, two cognitive, two motor and two associative (wherever applicable) neurons are activated.  The task is run for a session, a number of trials.
+\par
+\textbf{\emph{Learning}}. The \emph{model} incorporates learning by taking the reward received in each trial into account forming a type of actor-critic network (Barto 1995). The learning changes the synaptic weights for the cortico-striatal gains over trials, particularily between the cognitive channels. 
+\begin{wrapfigure}{r}{0.5\textwidth}\vspace*{-1\baselineskip}%
+  \begin{center}
+  \includegraphics[width=0.48\textwidth]{two-armed.jpg}
+  \end{center}
+  \caption[2-armed bandit task in Guthrie model]{2-armed bandit task in Guthrie model, as described in Pasquereau et al. 2007. The \emph{model} has to make a cognitive decision about the shape and a motor direction decision, ideally towards the position of selected shape.}
+\end{wrapfigure} The \emph{model} design allows bidirectional information transfer between loops, a consequence of which was that, in early trials, a direction could be selected before a shape leading to a motor bias of cue selection(Fig. 1). However, after multiple trials , the \emph{model} begins to consistently make cognitive decision before the motor decision in each trial and most frequently the motor decision towards the position of the more rewarding cue shape.\par
+
+Accounting to the major characteristics of the Guthrie \emph{model}, an elobarative and reproducible computational model\footnote{http://www.labri.fr/perso/nrougier/downloads/ReproducibleScience.pdf} has been developed by \emph{Meropi Topalidou}\footnote{\label{imn}Institute of Neurodegenerative Diseases - Bordeaux}\footnote{\label{inria}INRIA Bordeaux SUD-OUEST}, \emph{Arthur Leblois}\footnote{Laboratory of Neurophysics and Physiology Universite Paris Descartes}, \emph{Thomas boraud}\cref{imn}, \emph{Nicolas P. Rougier}\cref{imn}\cref{inria}. This model reproduces the distinct activity of the chosen cue shape and the direction of chosen position (Fig. 2).\par
+
+\textbf{\emph{Neuronal dynamics}}. This model uses the same simplistic neuronal rate model as in Leblois et al. (2006) as used by the Guthrie \emph{model} to focus on the network dynammics. Within each structure, each neuron (in each channel of any loop) is modeled as a single rate neuron with the equation:
+\begin{equation}
+\tau \cfrac{dm}{dt} = -m + I_s + I_{Ext} - T
+\end{equation}
+decay time constant of the synaptic input $\tau$, negative values of activation, \emph{m} and threshold of the neuron \emph{T} are set to respective constant values as per the Guthrie's \emph{model}. $I_{Ext}$ is an external input representing the sensory visual salience of the cue, which is unchanged thoughout the process of learning.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\textwidth]{figure-1.png}
+  \caption[Activity of the channels in both cognitive and motor cortex varying with the trial time]{Activity (Hz) of all the channels in both cognitive and motor cortex varying with the trial time (seconds). The cognitive and motor activity corresponding to the cues which are not presented is constant(nearly zero). Of the 2 cues presented, the activity can be seen changing at a point (when decision is made). Also, it can be seen that for the cue whose activity increased (implying the cue has been chosen), cognitive activity (in red) rises before the motor activity (in blue) implying that the cognitive decision has been made before the motor decision.}
+\end{figure}
+When the \emph{model} is presented over a session of many trials (120 in this case), the two cue shapes in each trial are randomly chosen from the four. And it is made sure all the pairwise combinations of the shapes appear equal number of times throughout the session (6 combinations, 20 times each). Towards the last trials of the session, the model having learnt, the motor decision is biased towards the position of the cue shape which has been more rewarding from the beginning of the session. Many such independent sessions are run (in this case, 250). The performance of the model is measured by checking if the model made a motor position decision corresponding to the best rewarding cue shape of the two presented. This is measured as an average of each trial over different sessions. It is also reproduced that the mean performance of the \emph{model} reaches close to 1 (Fig. 3), implying that after learning, the \emph{model} most certainly selects the direction of the most rewarding cue in a given trial.
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\textwidth]{figure-2.png}
+  \caption[Performance of the model over various simulations]{Performance of the model over various simulations.Each simulation consisting of 120 trials, is independent of one another. The learning that happens over 120 trials in a simulation is reset by resetting weights at the beginning of each simulation. A decision is considered correct if the motor decision made is in the direction in which the more rewarding cue is present. The performance is an average over all the simulations for each trial. It can seen that as the learning happens upto 120 trails, model tends to perform nearly accurate i.e, selecting the more rewarding cue almost every trial}
+\end{figure}
+
+
+\section{Developments}
+\subsection{Learning in cortico-striatal motor channels}
+As mentioned in \emph{Learning, Materials and Methods}, the \emph{model} learns only in the cognitive channels of the cortico-striatal areas, assuming the reward probability os associated to the cognitive aspect, i.e, the shape of the cue. The \emph{model} is replicated, and learning is incorporated between the cortico-striatal motor channels. In every trial of the session, the weights of the cortico-striatal motor channels (position of the cue) are also adjusted besides that of cognitive channels upon the reward given. It can be observed that because of the learning, the synaptic weights are adjusted such that the weight of the channels associated to the more rewarding cue shapes is distintly more than the others (Fig.4).  \par
+\begin{figure}[!hb]
+  \begin{center}
+\def\tabularxcolumn#1{m{#1}}
+\begin{tabularx}{\linewidth}{@{}cXX@{}}
+\begin{tabular}{cc}
+\subfloat[Cognitive channel weights]{\includegraphics[width=0.45\textwidth]{SC1.png}} 
+   & \subfloat[Motor channel weights]{\includegraphics[width=0.45\textwidth]{SM1.png}}\\
+\subfloat[Cognitive channel weights]{\includegraphics[width=0.45\textwidth]{SC2.png}} 
+   & \subfloat[Motor channel weights]{\includegraphics[width=0.45\textwidth]{SM2.png}}
+\end{tabular}
+&
+\end{tabularx}
+\caption[Synaptic cortico-striatal weights]{Synaptic cortico-striatal weights changing over trials. 4(a)\&(b) as in the original \emph{model} with learning only in cortico-striatal cognitive channels. Weights of channels are shown in different colors. S0,...S3 represent weights of channels associated with each of four cue shapes whereas D0,...D3 represent that of each position where cues could be shown. 4(a) shows that eventually after learning, the weight of one channel that of highly rewarding cue shape is distinctly higher than that of other cue shapes. As there is no learning in motor channels, the motor channel weights are unchanged as in 4(b). After modifying the \emph{model} to add learning in cortico-striatal motor channels, 4(c) shows that the cognitive channels still learn as expected, increasing the weights as per the reward associated with the cue shape. At the same time, the motor channel weights are observed to be changed 4(d). Although reward given was not associated to the position of the cue presented, the \emph{model} attributes certain positions to be rewarding by increasing motor channel weights.}\label{weights}
+  \end{center}
+\end{figure}
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\textwidth]{P2.png}
+  \caption[\emph{Model} performance in the presence of motor channel learning]{\emph{Model} performance in the presence of motor channel learning. As it can be compared to Fig.3, the performance is found to be reduced when the cortico-striatal motor channels learn through the session. }
+\end{figure}
+
+\textbf{\emph{Reduced performance}}. With the addition of motor channel learning, the \emph{model} is run through 250 simulations, each with 120 trials. The learning rates , cortico-striatal gains and other parameters are set as per the original \emph{model}. Besides the updated weights of motor channel, a reduced mean performance is observed when compared to the \emph{model}'s mean performance in the absence of motor channel learning (Fig.5).\par
+
+\textbf{\emph{Faster motor decision}}. The original \emph{model} with learning only in the cognitive channels, shows that motor decision time is consistently higher than the cognitive decision time in each trial, suggesting that the best shape is chosen and thus a motor decision is taken depending on the position of chosen shape. However, with the addition of learning in motor channel to the \emph{model}, motor decision did not occur consistently after the cognitive decision implying that motor decision is hardly biased by the cognitive decision (chosen shape) (Fig. 6) and thereby affecting the overall performance. \par
+\begin{figure}[ht]
+  \begin{center}
+\def\tabularxcolumn#1{m{#1}}
+\begin{tabularx}{\linewidth}{@{}cXX@{}}
+\begin{tabular}{cc}
+\subfloat[Original model]{\includegraphics[width=0.9\textwidth]{T1.png}} \\
+\subfloat[Model with learning in motor channels]{\includegraphics[width=0.9\textwidth]{T2.png}}
+
+\end{tabular}
+&
+\end{tabularx}
+\caption[Decision times for each trials]{Decision times for each trial. The lines with dash represents the average decision time across all the trials. In the original model (a), when there is no learning in the motor channels, the motor decision time (in red) is more than the cognitive decision time (in blue), towards the ending trials. When the learning in motor channels is introduced (b), there is no such consistency of motor decision time observed, which implies motor decision (direction of position) was not necessarily biased by the cognitive decision (cue shape)}\label{decision times}
+\end{center}
+\end{figure}
+
+\subsection{Non-simultaneous cue presentation}
+In the task presented in the original \emph{model}, two randomly chosen cue shapes are presented simultaneously. And thus the \emph{model} starts to make decision having both the cues already presented. However, if there is a certain delay between presenting both the cue shapes, it might affect the decision making. The \emph{model} is allowed to learn for 120 trials with the usual task. Once the \emph{model} has learnt the cortico-striatal cognitive channel weights, the \emph{model} is tested with a trial in which only one cue shape is presented after the settling time. After a certain milliseconds of delay, the second shape is presented. \par
+If the first presented cue shape is best rewarding compared to the upcoming one, it is expected that the \emph{model} chooses the first cue and delay has no effect on the model. Hence the model is tested for the combination of cue presentations where first presented cue shape is less rewarding than the upcoming cue. For the each of the 6 possible combinations of cue presentations where the first presented cue shape could be less rewarding than the upcoming one, the \emph{model} is tested for 120 trials. The performance is measured for each combination, the expectation being the \emph{model} would select the best rewarding cue shape even if it is presented after a certain delay.\par
+ For smaller delays such as 10 ms or 20 ms, \emph{model} is observed to select the best rewarding cue of the both, though it was presented after the delay. But as the delay increases, the performance of the \emph{model} is observed to be reduced significantly. Interestingly, the delay after which the \emph{model} couldn't select the best rewarding cue, is different for different combinations, depending on the best rewarding cue shape in the combination. The future work on the \emph{model} includes making the \emph{model} account for the delay between the cue presentations and still be able to choose the best rewarding cue.       
+
+\begin{figure}[!hb]
+  \begin{center}
+\def\tabularxcolumn#1{m{#1}}
+\begin{tabularx}{\linewidth}{@{}cXX@{}}
+\begin{tabular}{cc}
+\subfloat[Cue shape appearing with delay - 0]{\includegraphics[width=0.45\textwidth]{PD1.png}} 
+   & \subfloat[Cue shape appearing with delay - 1]{\includegraphics[width=0.45\textwidth]{PD2.png}}\\
+\subfloat[Cue shape appearing with delay - 2]{\includegraphics[width=0.45\textwidth]{PD3.png}} 
+\end{tabular}
+&
+\end{tabularx}
+\caption[Delay in second cue presentation]{Delay in second cue presentation, performance of the \emph{model}. [0,1,2,3] represent cue shapes in the decreasing order of reward probabilities [1.0,0.66,0.33,0] respectively. The \emph{model} is allowed to learn in its original state. Then each combination of the following cue pairs are presented with the more rewarding cue appearing after a delay, for 120 trials and the performance is measured. (a) 3 combinations of cue shapes with cue shape - 0 appearing after a delay in all the cases. Performance starts to decrease as cue 0 is presented after a delay grerater than 10 ms. (b) 2 combinations with cue shape 1 appearing after a delay. Performance starts to decrease after the delay is greater than 20 ms. Similar observation with the cue shape 2 presented after a delay, (c).}
+\end{center}
+\end{figure}
+
+\subsection{Visual salience of the cue}
+The \emph{model} encodes the visual salience of the cue shape presented as $I_{Ext}$ in the neuronal equation (Eq. 1). $I_{Ext}$ is unchanged throughtout the learning process. After the \emph{model} has learnt, change in such salience of the cue shape affected the performance of the \emph{model}. In similar terms as \emph{Section 3.2} , the \emph{model} is allowed to learn for 120 trials. In a trial when two randomly chosen cue shapes are presented simultaneously, but the lesser rewarding cue has more salience than what the \emph{model} has learnt, it is expected that the model still selects the best rewarding cue.\par
+\begin{figure}[!hb]
+\begin{center}
+\begin{tabularx}{\linewidth}{@{}cXX@{}}
+\begin{tabular}{cc}
+\subfloat[Cue with lesser salience - 0]{\includegraphics[width=0.45\textwidth]{PS1.png}} 
+& \subfloat[Cue with lesser salience - 1]{\includegraphics[width=0.45\textwidth]{PS2.png}} \\
+\subfloat[Cue with lesser salience - 2]{\includegraphics[width=0.45\textwidth]{PS3.png}} 
+\end{tabular}
+\end{tabularx}
+\caption[Cue shapes with different salience]{Cue shapes with different salience, performance of the \emph{model}. [0,1,2,3] represent cue shapes in the decreasing order of reward probabilities [1.0,0.66,0.33,0] respectively. The \emph{model} is allowed to learn in its original state. Then each combination of the following cue pairs are presented.  In a trial, both the cues appear simultaneously, but the lesser rewarding cue is presented with increase in salience, for 120 trials and the performance is measured. (a) 3 combinations of cue shapes with cue shape - 0 with an increased salience to the lesser rewarding cue shape. Performance starts to decrease as the salience of the cue shape other than 0 is increased by more than 1 sp/s. (b) 2 combinations with cue shape 1 and the lesser rewarding cues with increased salience. Performance starts to decrease as the salience of the cue shape other than 1 is increased by more than 1.5 sp/s. Similar observation with the cue shape 3 presented with increased salience against cue shape 2 (c).}
+\end{center}
+\end{figure}
+In each of the 6 pairwise cue combinations, the salience of the lesser rewarding cue shape is increased and each combination is presented for 120 trials. The performance of the \emph{model} is measured, expecting the \emph{model} still selects the best rewarding cue shape. However, the performance of the \emph{model} is observed to be reduced when the lesser rewarding cue shape is presented with a certain increase in salience. Interestingly, the increase of salience after which the \emph{model} performance decreases for each combination depends on the best rewarding cue shape in the combination. 
+
+\section{Progress}
+\subsection{As on 21/08/2015}
+\textbf{\emph{Scaling}}: The results of the developments as in the section 3 give some useful insights into various factors involving decision making. However, one of the major limitations of the \emph{model} is the discrete representation of stimuli in the discussed areas. One neuron (channel) representing each cue shape stands too simplified a representation and limits us from analyzing cases like ambiguous cue shapes. With the idea of scaling up the model and have a number of neurons representing each stimulus, we decide to implement the exact model using \emph{Distributed Asynchronous Numerical \& Adaptive computing framework (DANA\footnote{http://dana.loria.fr/doc/index.html})} and then scale up the number of neurons representing the cue shape inputs in important areas of cortex and striatum.\par
+Having a population of neurons representing each cue shape input, the is analyzed to find an appropriate method. A guassian input at the center of each popualation for a particular cue shape is tried, to begin with. It'll be explored how the \emph{model} translates this kind of stimuli representation to further levels in decision making.  \par
+\textbf{\emph{DANA}} provides a sophisticated and simpler framework to project connections between structures of unequal populations. Also, being a python based framework, the internal representations used in \emph{DANA} helps faster computation, particularily for dynamically changing neural populations, than numpy.
+\par
+We have begun to convert the existing \emph{model} to \emph{DANA}. The idea is to retain the exact details of structures in the existing \emph{model} and make sure similar results are replicated; then expand the number of neurons in cortex and striatum. Owing to the knowledge that number of neurons in cortex is bigger than that in striatum, it is chosen to attempt the scaling up intially in cortex, beginning with 512 neurons in total while the projection remains to be onto 4 neurons in striatum. As the desired results are replicated, it would be fairly easy to scale up striatum.\par
+\subsection{As on 04/09/2015}
+The model is converted to \emph{DANA}, with structures connected through DANA connections. It is configurable to increase the population in cortex or striatum as needed. However, with increased population in cortex, the model needs to replicate the trial behaviour as exhibited in the Guthrie \emph{model} (Fig. 2)  \par
+\textbf{\emph{Input}} is represented by a gaussian, over the population representing each cue shape, with mean being at the center of the population. Unlike the simplistic case in the previous \emph{model}, where a single neuron receives external current, for each cue shape, now the input is distributed across a population. Hence at the target structure, the gains need to be changed. The population in the cortex representing each cue shape (and each motor direction) is increased to 16 from 1 and that of striatum remaining 1.
+\par
+The sigmoidal behaviour of the cortex(cognitive and motor) activity within the first 500 ms (settling time of the trial), which is a very significant feature of the Guthrie \emph{model}, is reproduced. However the later stabilization of the activity representing both the cues, with higher activity implying selection of a choice, is not observed.
+\begin{figure}[!ht]
+\begin{center}
+\begin{tabularx}{\linewidth}{@{}cXX@{}}
+\begin{tabular}{cc}
+\subfloat[Cortex activity in a trial - 1 neuron per cue shape]{\includegraphics[width=0.85\textwidth]{trial_dana_1.png}} 
+\\
+\subfloat[Cortex activity in a trial - 16 neurons per cue shape]{\includegraphics[width=0.85\textwidth]{trial_dana_16.png}}
+\end{tabular}
+\end{tabularx}
+\caption[Cortex activity in each trial]{Cortex activity in each trial. With the model implemented in \emph{DANA}, and the population remaining same as the Guthrie \emph{model}, the activity cab seen as identical to that of in the Guthrie \emph{model} (a). When the the population is increased in cortex, the acitivity before the introduction of stimulus is identical. However, to obtain a selection of action, appropriate gains are to be identified.}
+\end{center}
+\end{figure}
+
+\textbf{\emph{TBD - following week}} Identify suitable gains for the cortex to striatum projections, so that action selection can be observed, with a higher population in cortex to that in striatum.
+
+\subsection{As on 11/09/2015}
+\emph{\textbf{Highly populated cortex}} With a cortex population of 1024 neurons in total, together representing all the four possible cue shapes, striatum and other structures have been maintained at a population of 4 neurons, one neuron per cue shape. Some modifications have been done in the inter-structure connectivity and an increased external current is given to cortex (represent visual salience of the stimulus) but distributed normally across the population of neurons representing a stimulus.
+\par Interestingly, the activity pattern after the trial in cortex, is quite similar to that of the \emph{model} at its simplest form (one neuron per each cue at every structure).
+
+\begin{figure}[!ht]
+\begin{center}
+\begin{tabularx}{\linewidth}{@{}cXX@{}}
+\begin{tabular}{cc}
+\subfloat[Cortex activity in a trial - 256 neurons per cue shape]{\includegraphics[width=0.85\textwidth]{cortex_activity_1024.png}} 
+\\
+\subfloat[Cortex - External input (trial start) \& Activity (trial end) ]{\includegraphics[width=0.85\textwidth]{input_output_1024.png}}
+\end{tabular}
+\end{tabularx}
+\caption[Cortex activity in each trial]{Cortex activity in each trial. With 256 neurons representing each cue shape, and the mean of the final activities of each such population plotted against trial time. Similar to Fig.9(a). (b) With two gaussian external inputs each for cognitive cortex (two shapes) and motor cortex ( two positions), the activity in cognitive and motor cortex after the end of trial. }
+\end{center}
+\end{figure}
+
+\par \emph{However} it is observed that 1024 neurons in cortex significantly increases the computational complexity of the model, in its current scope.
+With a cortex population of 256 neurons (64 neurons per cue shape), the model exhibits similar behaviour. It is interesting to see how the model behaves if striatum is also scaled up to more than one neuron per cue shape.
+
+\textbf{\emph{TBD - following week}} With cortex population at 256 neurons (in each of cognitive and motor channels) representing all four cue shapes (and positions), Striatum will be expanded, to 16 neurons or more in total and then observe how the model behaves.
+
+\clearpage
+\nocite{*}
+\bibliography{decisionmaking.bib}{}
+\bibliographystyle{plain}
+
 \end{document}
