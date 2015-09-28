@@ -8,14 +8,20 @@ Vmax       =  20.0
 Vh         =  16.0
 Vc         =   3.0
 
-popPerCueSTR = 4 
-ctxTostr = 4 
-strToctx = 1.0/ctxTostr
-popPerCueCTX = ctxTostr * popPerCueSTR 
+numOfCues = 4
 
-gpiToStr = 1.0/popPerCueSTR #Assuming GPi has one neuron per cue
-ctxp = (1.0*popPerCueSTR)/popPerCueCTX 
-ctxth = 1.0/popPerCueCTX #Assuming THL has one neuron per cue 
+popPerCueCTX = 64 
+popPerCueSTR = 4 
+popPerCueGPI = 4 
+popPerCueSTN = 4 
+popPerCueTHL = 4 
+
+strToCtx = (1.0*popPerCueSTR)/popPerCueCTX 
+gpiToStr = (1.0)/popPerCueSTR 
+thlToGpi = (1.0)/popPerCueGPI 
+ctxToThl = (1.0*popPerCueCTX)/popPerCueTHL 
+thlToCtx = (1.0)/popPerCueCTX 
+stnToCtx = (1.0)/popPerCueCTX 
 
 tau = 0.01
 CTX_tau, CTX_rest, CTX_noise = tau, -3.0 , 0.010
@@ -23,24 +29,6 @@ STR_tau, STR_rest, STR_noise = tau,  0.0 , 0.001
 GPI_tau, GPI_rest, GPI_noise = tau,  10.0, 0.030 
 THL_tau, THL_rest, THL_noise = tau, -40.0, 0.001
 STN_tau, STN_rest, STN_noise = tau, -10.0, 0.001
-
-def getCTXGain():
-    if popPerCueCTX == 1:
-        return 7
-    elif popPerCueCTX == 4:
-        return 4.45
-    elif popPerCueCTX == 16:
-        return 2.05
-    else:
-        return 1.775
-
-def getGain():
-   for i in 1+np.arange(10):
-       j = 2 * i
-       if 2**j == popPerCueCTX:
-           return 0.5/(3.0**i)
-   return 1
-
 
 def identity(x):
     if x < 0.0: return 0.0
@@ -77,17 +65,17 @@ class Structure:
 
     def __init__(self, structure, pop=4):
         if structure == 'CTX':
-            self._cog = Group(pop, 'dV/dt = (-V + Isyn + Iext - CTX_rest)/CTX_tau ; U = unoise(clamp(V) , CTX_noise); Z=U*ctxp; T=U*ctxth; Isyn ; Iext ')
-            self._mot = Group(pop, 'dV/dt = (-V + Isyn + Iext - CTX_rest)/CTX_tau ; U = unoise(clamp(V) , CTX_noise); Z=U*ctxp; T=U*ctxth; Isyn ; Iext ')
+            self._cog = Group(pop, 'dV/dt = (-V + Isyn + Iext - CTX_rest)/CTX_tau ; U = unoise(clamp(V) , CTX_noise); Z=U*strToCtx; T=U*thlToCtx; N=U*stnToCtx; Isyn ; Iext ')
+            self._mot = Group(pop, 'dV/dt = (-V + Isyn + Iext - CTX_rest)/CTX_tau ; U = unoise(clamp(V) , CTX_noise); Z=U*strToCtx; T=U*thlToCtx; N=U*stnToCtx; Isyn ; Iext ')
         elif structure == 'STR':
             self._cog = Group(pop, 'dV/dt = (-V + Isyn + Iext - STR_rest)/STR_tau ; U = unoise(sigmoid(V) , STR_noise); Z=U*gpiToStr; Isyn ; Iext ')
             self._mot = Group(pop, 'dV/dt = (-V + Isyn + Iext - STR_rest)/STR_tau ; U = unoise(sigmoid(V) , STR_noise); Z=U*gpiToStr; Isyn ; Iext ')
         elif structure == 'GPI':
-            self._cog = Group(pop, 'dV/dt = (-V + Isyn + Iext - GPI_rest)/GPI_tau ; U = unoise(clamp(V) , GPI_noise); Isyn ; Iext ')
-            self._mot = Group(pop, 'dV/dt = (-V + Isyn + Iext - GPI_rest)/GPI_tau ; U = unoise(clamp(V) , GPI_noise); Isyn ; Iext ')
+            self._cog = Group(pop, 'dV/dt = (-V + Isyn + Iext - GPI_rest)/GPI_tau ; U = unoise(clamp(V) , GPI_noise); Z=U*thlToGpi; Isyn ; Iext ')
+            self._mot = Group(pop, 'dV/dt = (-V + Isyn + Iext - GPI_rest)/GPI_tau ; U = unoise(clamp(V) , GPI_noise); Z=U*thlToGpi; Isyn ; Iext ')
         elif structure == 'THL':
-            self._cog = Group(pop, 'dV/dt = (-V + Isyn + Iext - THL_rest)/THL_tau ; U = unoise(clamp(V) , THL_noise); Z=U*ctxp; Isyn ; Iext ')
-            self._mot = Group(pop, 'dV/dt = (-V + Isyn + Iext - THL_rest)/THL_tau ; U = unoise(clamp(V) , THL_noise); Z=U*ctxp; Isyn ; Iext ')
+            self._cog = Group(pop, 'dV/dt = (-V + Isyn + Iext - THL_rest)/THL_tau ; U = unoise(clamp(V) , THL_noise); Z=U*ctxToThl; Isyn ; Iext ')
+            self._mot = Group(pop, 'dV/dt = (-V + Isyn + Iext - THL_rest)/THL_tau ; U = unoise(clamp(V) , THL_noise); Z=U*ctxToThl; Isyn ; Iext ')
         elif structure == 'STN':
             self._cog = Group(pop, 'dV/dt = (-V + Isyn + Iext - STN_rest)/STN_tau ; U = unoise(clamp(V) , STN_noise); Isyn ; Iext ')
             self._mot = Group(pop, 'dV/dt = (-V + Isyn + Iext - STN_rest)/STN_tau ; U = unoise(clamp(V) , STN_noise); Isyn ; Iext ')
@@ -117,7 +105,7 @@ class AssociativeStructure(Structure):
     def __init__(self, structure, pop=4):
 	Structure.__init__(self, structure, pop)
         if structure == 'CTX':
-            self._ass = Group((pop,pop), 'dV/dt = (-V + Isyn + Iext - CTX_rest)/CTX_tau ; U = unoise(clamp(V) , CTX_noise); Z=U*ctxp*ctxp; T=U*ctxth*ctxth; Isyn ; Iext ')
+            self._ass = Group((pop,pop), 'dV/dt = (-V + Isyn + Iext - CTX_rest)/CTX_tau ; U = unoise(clamp(V) , CTX_noise); Z=U*strToCtx*strToCtx; Isyn ; Iext ')
         elif structure == 'STR':
             self._ass = Group((pop,pop), 'dV/dt = (-V + Isyn + Iext - STR_rest)/STR_tau ; U = unoise(sigmoid(V) , STR_noise); Z=U*gpiToStr*gpiToStr; Isyn ; Iext ')
 
@@ -192,11 +180,13 @@ def AssToCogWeights(sourceshape, targetsize):
     # source.shape = m x n
     (m, n) = sourceshape
     sourcesize = m * n
-    eachcog = m / targetsize
+    eachsrc = m / numOfCues
+    eachtar = targetsize / numOfCues
     kernel = np.zeros((targetsize, sourcesize))
-    for i in range(targetsize):
-        start = i * eachcog * n 
-        kernel[i, start:start+(eachcog*n)] = 1 
+    for i in range(numOfCues):
+        ass = np.zeros((m, n))
+        ass[i*eachsrc:i*eachsrc+eachsrc, :] = 1 
+        kernel[i*eachtar:i*eachtar+eachtar, :] = np.reshape(ass,(1,ass.size))
     return kernel
 
 def AssToMotWeights(sourceshape, targetsize):
@@ -204,12 +194,13 @@ def AssToMotWeights(sourceshape, targetsize):
     # source.shape = m x n
     (m, n) = sourceshape
     sourcesize = m * n
-    eachmot = n / targetsize
+    eachsrc = n / numOfCues
+    eachtar = targetsize / numOfCues
     kernel = np.zeros((targetsize, sourcesize))
     for i in range(targetsize):
         ass = np.zeros((m, n))
-        ass[:,i*eachmot:i*eachmot+eachmot] = 1 
-        kernel[i, :] = np.reshape(ass,(1,ass.size))
+        ass[:,i*eachsrc:i*eachsrc+eachsrc] = 1 
+        kernel[i*eachtar:i*eachtar+eachtar, :] = np.reshape(ass,(1,ass.size))
     return kernel
 
 def limitWeights(weights, Wmin = 0.25, Wmax = 0.75):

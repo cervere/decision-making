@@ -2,11 +2,9 @@ from guthrie_modelc import *
 from display import *
 
 # Trial duration
-duration = 3012.0*millisecond
+duration = 3000.0*millisecond
 # Default Time resolution
 dt = 1.0*millisecond
-
-numOfCues = 4
 
 popCTX = numOfCues*popPerCueCTX
 popSTR = numOfCues*popPerCueSTR
@@ -25,8 +23,8 @@ OneToOne(CTX.mot('Z'), STR.mot('Isyn'), 1.0, clipWeights=True)
 AscToAsc(CTX.ass('Z'), STR.ass('Isyn'), 1.0, clipWeights=True) 
 CogToAss(CTX.cog('Z'), STR.ass('Isyn'), gain=+0.2, clipWeights=True)
 MotToAss(CTX.mot('Z'), STR.ass('Isyn'), gain=+0.2, clipWeights=True)
-OneToOne(CTX.cog('T'), STN.cog('Isyn'), 1.0) 
-OneToOne(CTX.mot('T'), STN.mot('Isyn'), 1.0)
+OneToOne(CTX.cog('N'), STN.cog('Isyn'), 1.0) 
+OneToOne(CTX.mot('N'), STN.mot('Isyn'), 1.0)
 OneToOne(STR.cog('Z'), GPI.cog('Isyn'), -2.0) 
 OneToOne(STR.mot('Z'), GPI.mot('Isyn'), -2.0)
 AssToCog(STR.ass('Z'), GPI.cog('Isyn'), gain=-2.0)
@@ -91,25 +89,29 @@ def set_trial(t):
 
 
 def print_act(t):
-    print "%d CTX U %s" % (t*1000, sumActivity(CTX.mot['U']))
-    print "%d CTX Z %s" % (t*1000, sumActivity(CTX.mot['Z']))
+    print "%d CTX Isyn %s" % (t*1000, sumActivity(CTX.mot['Isyn']))
     print "%d STR Isyn %s" %(t*1000, sumActivity(STR.mot['Isyn']))
-    print "%d STR U %s" %(t*1000, sumActivity(STR.mot['U']))
+    print "%d STR mot Z %s" %(t*1000, sumActivity(STR.mot['Z']))
+    print "%d STR ass Z %s" %(t*1000, sumActivity(STR.ass['Z']))
+    print "%d STN U %s" %(t*1000, sumActivity(STN.mot['U']))
     print "%d GPI Isyn %s" %(t*1000, sumActivity(GPI.mot['Isyn']))
+    print "%d GPI U %s" %(t*1000, sumActivity(GPI.mot['U']))
+    print "%d GPI Z %s" %(t*1000, sumActivity(GPI.mot['Z']))
+    print "%d THL Isyn %s" %(t*1000, sumActivity(THL.mot['Isyn']))
+    #print "%d THL U %s" %(t*1000, sumActivity(THL.mot['U']))
     #print "%d STR U %s" % (t*1000, sumActivity(STR.mot['U']))
 
-@clock.at(1006*millisecond)
+@clock.at(1*millisecond)
 def check_trial(t):
     print_act(t)
 
-@clock.at(101*millisecond)
+@clock.at(2*millisecond)
 def check_trial(t):
     print_act(t)
 
-@clock.at(51*millisecond)
+@clock.at(15*millisecond)
 def check_trial(t):
     print_act(t)
-
 
 def plot_per_neuron(cog, mot, ylabel, title):
     plt.plot(1+np.arange(numOfCues*popPerCueCTX), cog, c='r', label='cognitive cortex')
@@ -163,5 +165,5 @@ def register(t):
 
 reset()
 run(time=duration,dt=dt)
-plt.tight_layout()
+#plt.tight_layout()
 display_ctx(history, duration)
