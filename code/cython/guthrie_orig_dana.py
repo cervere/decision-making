@@ -98,6 +98,7 @@ cues_value = np.ones(4) * 0.5
 cues_reward = np.array([3.,2.,1.,0.0])/4.
 Z = [[0,1], [0,2], [0,3], [1,2], [1,3], [2,3]]
 C, M = [], []
+
 for i in range(20):
     pos = np.arange(6)
     np.random.shuffle(pos)
@@ -245,9 +246,10 @@ end = time.time()
 print "%d secs for the session" % (end - start)
 print "Mean performance %f" % np.array(P).mean()
 last = np.array(P).size/6
+np.save("performance.npy",  P)
 print "Mean performance last %d trials %.3f" % (last, np.array(P)[-last:].mean())
 print "Mean reward %f" % np.array(P).mean()
-np.save("weights.npy", ctxStrCog._weights)
+print ctxStrCog._weights
 
 if plot:
     plt.tight_layout()

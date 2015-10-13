@@ -7,7 +7,8 @@ duration = 3000.0*millisecond
 # Default Time resolution
 dt = 1.0*millisecond
 
-plot = False
+plot = True
+learning = False
 threshold  = 40
 alpha_c    = 0.025
 alpha_LTP  = 0.004
@@ -27,27 +28,26 @@ STN = Structure("STN")
 GPI = Structure("GPI")
 THL = Structure("THL")
 
-ctxStrCog = OneToOne(CTX.cog('Z'), STR.cog('Isyn'), 1.0, clipWeights=True)
-OneToOne(CTX.mot('Z'), STR.mot('Isyn'), 1.0, clipWeights=True)
-AscToAsc(CTX.ass('Z'), STR.ass('Isyn'), 1.0, clipWeights=True) 
-CogToAss(CTX.cog('Z'), STR.ass('Isyn'), gain=+0.2, clipWeights=True)
-MotToAss(CTX.mot('Z'), STR.ass('Isyn'), gain=+0.2, clipWeights=True)
-OneToOne(CTX.cog('N'), STN.cog('Isyn'), 1.0) 
-OneToOne(CTX.mot('N'), STN.mot('Isyn'), 1.0)
-OneToOne(STR.cog('Z'), GPI.cog('Isyn'), -2.0) 
-OneToOne(STR.mot('Z'), GPI.mot('Isyn'), -2.0)
-AssToCog(STR.ass('Z'), GPI.cog('Isyn'), gain=-2.0)
-AssToMot(STR.ass('Z'), GPI.mot('Isyn'), gain=-2.0)
+ctxStrCog = OneToOne(CTX.cog('U'), STR.cog('Isyn'), 1.0*strToCtx, clipWeights=True)
+OneToOne(CTX.mot('U'), STR.mot('Isyn'), 1.0*strToCtx, clipWeights=True)
+AscToAsc(CTX.ass('U'), STR.ass('Isyn'), 1.0*strToCtx*strToCtx, clipWeights=True) 
+CogToAss(CTX.cog('U'), STR.ass('Isyn'), gain=+0.2*strToCtx, clipWeights=True)
+MotToAss(CTX.mot('U'), STR.ass('Isyn'), gain=+0.2*strToCtx, clipWeights=True)
+OneToOne(CTX.cog('U'), STN.cog('Isyn'), 1.0*stnToCtx) 
+OneToOne(CTX.mot('U'), STN.mot('Isyn'), 1.0*stnToCtx)
+OneToOne(STR.cog('U'), GPI.cog('Isyn'), -2.0*gpiToStr) 
+OneToOne(STR.mot('U'), GPI.mot('Isyn'), -2.0*gpiToStr)
+AssToCog(STR.ass('U'), GPI.cog('Isyn'), gain=-2.0*gpiToStr*gpiToStr)
+AssToMot(STR.ass('U'), GPI.mot('Isyn'), gain=-2.0*gpiToStr*gpiToStr)
 OneToAll(STN.cog('U'), GPI.cog('Isyn'), gain=+1.0 )
 OneToAll(STN.mot('U'), GPI.mot('Isyn'), gain=+1.0 )
 OneToOne(GPI.cog('U'), THL.cog('Isyn'), -0.5) 
 OneToOne(GPI.mot('U'), THL.mot('Isyn'), -0.5)
 OneToOne(THL.cog('U'), CTX.cog('Isyn'), +1.0) 
 OneToOne(THL.mot('U'), CTX.mot('Isyn'), +1.0)
-OneToOne(CTX.cog('T'), THL.cog('Isyn'), 0.4) 
-OneToOne(CTX.mot('T'), THL.mot('Isyn'), 0.4)
+OneToOne(CTX.cog('U'), THL.cog('Isyn'), 0.4*thlToCtx) 
+OneToOne(CTX.mot('U'), THL.mot('Isyn'), 0.4*thlToCtx)
 
-learned = [ 0.56135171,  0.53677366,  0.49578237,  0.49318303]
 W = ctxStrCog._weights
 (tar, sou) = W.shape
 eachsou = sou/numOfCues
@@ -98,6 +98,7 @@ cues_value = np.ones(4) * 0.5
 cues_reward = np.array([3.,2.,1.,0.0])/4.
 Z = [[0,1], [0,2], [0,3], [1,2], [1,3], [2,3]]
 C, M = [], []
+
 for i in range(20):
     pos = np.arange(6)
     np.random.shuffle(pos)
@@ -213,8 +214,10 @@ def register(t):
     history["CTX"]["cog"][t*1000] = meanActivity(CTX.cog['U'])
     history["CTX"]["mot"][t*1000] = meanActivity(CTX.mot['U'])
     global c1,c2,m1,m2
+    global decision_not_made
     meanAct = meanActivity(CTX.mot['U'])
-    if meanAct.max() - meanAct.min() > 40.0:
+    if decision_not_made and (meanAct.max() - meanAct.min() > 40.0):
+        decision_not_made = False
         mot_choice = np.argmax(meanAct)
         cog_choice = np.argmax(meanAct)
         if mot_choice == m1:
@@ -230,24 +233,28 @@ def register(t):
         reward = np.random.uniform(0,1) < cues_reward[cog_choice]
         R.append(reward)
         print "choice made -%d- of (%d,%d) - %s" % (cog_choice, c1, c2, st)
-        if 1 : learn(cog_choice, reward)
-        end()
+        if learning : 
+            learn(cog_choice, reward)
+            end()
 
 print ctxStrCog._weights
+global decision_not_made
 start = time.time()
-for i in range(120):
+for i in range(1):
     cues_cog = Z[C[i]]
     cues_mot = Z[M[i]]
     reset()
     print "Running trial - %d" % i
+    decision_not_made = True
     run(time=duration,dt=dt)
 end = time.time()
 print "%d secs for the session" % (end - start)
 print "Mean performance %f" % np.array(P).mean()
 last = np.array(P).size/6
+np.save("performance.npy",  P)
 print "Mean performance last %d trials %.3f" % (last, np.array(P)[-last:].mean())
 print "Mean reward %f" % np.array(P).mean()
-np.save("weights.npy", ctxStrCog._weights)
+print ctxStrCog._weights
 
 if plot:
     plt.tight_layout()
