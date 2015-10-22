@@ -22,8 +22,8 @@ Wmin, Wmax = 0.25, 0.75
 popCTX = numOfCues*popPerCueCTX
 popSTR = numOfCues*popPerCueSTR
 
-CTX_GUASSIAN_INPUT = getNormal(popPerCueCTX)
-CTX_GUASSIAN_INPUT_2D = get2DNormal(popPerCueCTX, popPerCueCTX)
+CTX_GUASSIAN_INPUT = getNormal(3*3*popPerCueCTX)[popPerCueCTX*1*4:popPerCueCTX*1*4+popPerCueCTX]
+CTX_GUASSIAN_INPUT_2D = get2DNormal(3*3*popPerCueCTX, 3*3*popPerCueCTX)[popPerCueCTX*1*4:popPerCueCTX*1*4+popPerCueCTX, popPerCueCTX*1*4:popPerCueCTX*1*4+popPerCueCTX]
 
 CTX = AssociativeStructure("CTX", pop=numOfCues*popPerCueCTX)
 STR = AssociativeStructure("STR", pop=numOfCues*popPerCueSTR)
@@ -40,8 +40,8 @@ OneToOne(CTX.cog('U'), STN.cog('Isyn'), 1.0*stnToCtx)
 OneToOne(CTX.mot('U'), STN.mot('Isyn'), 1.0*stnToCtx)
 OneToOne(STR.cog('U'), GPI.cog('Isyn'), -2.0*gpiToStr*popPerCueGPI)
 OneToOne(STR.mot('U'), GPI.mot('Isyn'), -2.0*gpiToStr*popPerCueGPI)
-AssToCog(STR.ass('U'), GPI.cog('Isyn'), gain=-2.0*gpiToStr*gpiToStr*popPerCueGPI)
-AssToMot(STR.ass('U'), GPI.mot('Isyn'), gain=-2.0*gpiToStr*gpiToStr*popPerCueGPI)
+AssToCog(STR.ass('U'), GPI.cog('Isyn'), gain=-2.0*gpiToStr*gpiToStr)
+AssToMot(STR.ass('U'), GPI.mot('Isyn'), gain=-2.0*gpiToStr*gpiToStr)
 #AssToCog(STR.ass('Z'), GPI.cog('Isyn'), gain=-2.0)
 #AssToMot(STR.ass('Z'), GPI.mot('Isyn'), gain=-2.0)
 OneToAll(STN.cog('U'), GPI.cog('Isyn'), gain=+1.0/popPerCueSTN)
@@ -87,13 +87,13 @@ def reset():
     CTX.ass['Iext'] = 0
 
 def getExtInput():
-    v = 18 
+    v = 8 
     noise = 0.01
     return (CTX_GUASSIAN_INPUT )*(np.random.normal(v,noise)) 
 #+  np.random.normal(0,noise)
 
 def get2DExtInput():
-    v = 18 
+    v = 8 
     noise = 0.01
     return (CTX_GUASSIAN_INPUT_2D)*(np.random.normal(v,noise)) 
 #+ np.random.normal(0,v*noise)
@@ -193,8 +193,9 @@ def plot_per_neuron(cog, mot, ylabel, title):
 
 @clock.at(2500*millisecond)
 def reset_trial(t):
-    print sumActivity(CTX.cog['U'])
     print sumActivity(CTX.mot['U'])
+    print sumActivity(GPI.mot['Isyn'])
+    print sumActivity(GPI.mot['U'])
     if plot:
         plt.figure(1)
         plt.subplot(212)
@@ -208,7 +209,7 @@ def meanActivity(population):
     return percue.mean(axis=1)
 
 def sumActivity(population):
-    if 0 : return population
+    if 1 : return population
     percue = np.reshape(population, (numOfCues, population.size/numOfCues))
     return percue.mean(axis=1)
 
@@ -226,8 +227,8 @@ def learn(choice, reward):
 
 @after(clock.tick)
 def register(t):
-    if (t*1000) > 498 and (t*1000) < 502:
-    #if pri:
+    #if (t*1000) > 498 and (t*1000) < 502:
+    if pri:
         print_act(t)
     #print "%d - %s" % (int(t*1000), str(STR.cog['U']))    
     history["CTX"]["cog"][t*1000] = meanActivity(CTX.cog['U'])

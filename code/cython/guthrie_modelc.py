@@ -10,9 +10,9 @@ Vc         =   3.0
 
 numOfCues = 4
 base = 1 
-popPerCueCTX = base * 16 
+popPerCueCTX = base * 4 * 16 
 popPerCueSTR = base * 4
-popPerCueGPI = base #* 4 
+popPerCueGPI = base * 4 
 popPerCueSTN = base * 4
 popPerCueTHL = base * 4 
 
