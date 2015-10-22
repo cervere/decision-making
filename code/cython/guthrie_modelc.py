@@ -9,24 +9,24 @@ Vh         =  16.0
 Vc         =   3.0
 
 numOfCues = 4
-
-popPerCueCTX = 64 
-popPerCueSTR = 4 
-popPerCueGPI = 4 
-popPerCueSTN = 4 
-popPerCueTHL = 4 
+base = 1 
+popPerCueCTX = base * 16 
+popPerCueSTR = base * 4
+popPerCueGPI = base * 4 
+popPerCueSTN = base * 4
+popPerCueTHL = base * 4 
 
 strToCtx = (1.0*popPerCueSTR)/popPerCueCTX 
 gpiToStr = (1.0)/popPerCueSTR 
 thlToGpi = (1.0)/popPerCueGPI 
 ctxToThl = (1.0*popPerCueCTX)/popPerCueTHL 
-thlToCtx = (1.0)/popPerCueCTX 
-stnToCtx = (1.0)/popPerCueCTX 
+thlToCtx = (1.0*popPerCueTHL)/popPerCueCTX 
+stnToCtx = (1.0*popPerCueSTN)/popPerCueCTX 
 
 tau = 0.01
 CTX_tau, CTX_rest, CTX_noise = tau, -3.0 , 0.010
 STR_tau, STR_rest, STR_noise = tau,  0.0 , 0.001
-GPI_tau, GPI_rest, GPI_noise = tau,  10.0, 0.030 
+GPI_tau, GPI_rest, GPI_noise = tau,  10.0, 0.030
 THL_tau, THL_rest, THL_noise = tau, -40.0, 0.001
 STN_tau, STN_rest, STN_noise = tau, -10.0, 0.001
 
@@ -105,9 +105,9 @@ class AssociativeStructure(Structure):
     def __init__(self, structure, pop=4):
 	Structure.__init__(self, structure, pop)
         if structure == 'CTX':
-            self._ass = Group((pop,pop), 'dV/dt = (-V + Isyn + Iext - CTX_rest)/CTX_tau ; U = unoise(clamp(V) , CTX_noise); Z=U*strToCtx*strToCtx; Isyn ; Iext ')
+            self._ass = Group(pop*pop, 'dV/dt = (-V + Isyn + Iext - CTX_rest)/CTX_tau ; U = unoise(clamp(V) , CTX_noise); Z=U*strToCtx*strToCtx; Isyn ; Iext ')
         elif structure == 'STR':
-            self._ass = Group((pop,pop), 'dV/dt = (-V + Isyn + Iext - STR_rest)/STR_tau ; U = unoise(sigmoid(V) , STR_noise); Z=U*gpiToStr*gpiToStr; Isyn ; Iext ')
+            self._ass = Group(pop*pop, 'dV/dt = (-V + Isyn + Iext - STR_rest)/STR_tau ; U = unoise(sigmoid(V) , STR_noise); Z=U*gpiToStr*gpiToStr; Isyn ; Iext ')
 
     @property
     def ass(self):
@@ -123,6 +123,8 @@ class AssociativeStructure(Structure):
         self._ass.reset()
 
 def OneToOneWeights(sourcesize, targetsize):
+    if targetsize > sourcesize:
+        return np.transpose(OneToOneWeights(targetsize, sourcesize))
     each = sourcesize / targetsize
     kernel = np.zeros((targetsize, sourcesize))
     for i in range(targetsize):
@@ -214,14 +216,11 @@ def getConnection(source, target, kernel, clipWeights=False):
     return DenseConnection(source, target, kernel)
 
 def OneToOne(source, target, gain=1.0, clipWeights=False):
-    if target.size > source.size:
-        kernel = np.transpose(OneToOneWeights(target.size, source.size))
-    else:
-        kernel = OneToOneWeights(source.size, target.size)
+    kernel = OneToOneWeights(source.size, target.size)
     return getConnection(source, target, gain * kernel, clipWeights)
 
 def AscToAsc(source, target, gain=1.0, clipWeights=False):
-    kernel = AscToAscWeights(source.shape, target.shape)
+    kernel = AscToAscWeights((int(np.sqrt(source.size)),int(np.sqrt(source.size))), (int(np.sqrt(target.size)),int(np.sqrt(target.size))))
     return getConnection(source, target, gain * kernel, clipWeights)
 
 def OneToAll(source, target, gain=1.0, clipWeights=False):
@@ -229,17 +228,17 @@ def OneToAll(source, target, gain=1.0, clipWeights=False):
     return getConnection(source, target, gain * kernel, clipWeights)
 
 def CogToAss(source, target, gain=1.0, clipWeights=False):
-    kernel = CogToAssWeights(source.size, target.shape)
+    kernel = CogToAssWeights(source.size, (int(np.sqrt(target.size)),int(np.sqrt(target.size))))
     return getConnection(source, target, gain * kernel, clipWeights)
 
 def MotToAss(source, target, gain=1.0, clipWeights=False):
-    kernel = MotToAssWeights(source.size, target.shape)
+    kernel = MotToAssWeights(source.size, (int(np.sqrt(target.size)),int(np.sqrt(target.size))))
     return getConnection(source, target, gain * kernel, clipWeights)
 
 def AssToCog(source, target, gain=1.0, clipWeights=False):
-    kernel = AssToCogWeights(source.shape, target.size)
+    kernel = AssToCogWeights((int(np.sqrt(source.size)),int(np.sqrt(source.size))), target.size)
     return getConnection(source, target, gain * kernel, clipWeights)
 
 def AssToMot(source, target, gain=1.0, clipWeights=False):
-    kernel = AssToMotWeights(source.shape, target.size)
+    kernel = AssToMotWeights((int(np.sqrt(source.size)),int(np.sqrt(source.size))), target.size)
     return getConnection(source, target, gain * kernel, clipWeights)

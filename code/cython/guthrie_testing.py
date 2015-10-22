@@ -3,7 +3,10 @@ from display import *
 import time
 
 # Trial duration
-duration = 3000.0*millisecond
+duration =  501.0*millisecond
+pri = False
+if duration*1000 < 50:
+    pri = True
 # Default Time resolution
 dt = 1.0*millisecond
 
@@ -24,29 +27,32 @@ CTX_GUASSIAN_INPUT_2D = get2DNormal(popPerCueCTX, popPerCueCTX)
 
 CTX = AssociativeStructure("CTX", pop=numOfCues*popPerCueCTX)
 STR = AssociativeStructure("STR", pop=numOfCues*popPerCueSTR)
-STN = Structure("STN")
-GPI = Structure("GPI")
-THL = Structure("THL")
+STN = Structure("STN", pop=numOfCues*popPerCueSTN)
+GPI = Structure("GPI", pop=numOfCues*popPerCueGPI)
+THL = Structure("THL", pop=numOfCues*popPerCueTHL)
 
 ctxStrCog = OneToOne(CTX.cog('U'), STR.cog('Isyn'), 1.0*strToCtx, clipWeights=True)
 OneToOne(CTX.mot('U'), STR.mot('Isyn'), 1.0*strToCtx, clipWeights=True)
-AscToAsc(CTX.ass('U'), STR.ass('Isyn'), 1.0*strToCtx*strToCtx, clipWeights=True) 
+AscToAsc(CTX.ass('U'), STR.ass('Isyn'), 1.0*strToCtx*strToCtx, clipWeights=True)
 CogToAss(CTX.cog('U'), STR.ass('Isyn'), gain=+0.2*strToCtx, clipWeights=True)
 MotToAss(CTX.mot('U'), STR.ass('Isyn'), gain=+0.2*strToCtx, clipWeights=True)
-OneToOne(CTX.cog('U'), STN.cog('Isyn'), 1.0*stnToCtx) 
+OneToOne(CTX.cog('U'), STN.cog('Isyn'), 1.0*stnToCtx)
 OneToOne(CTX.mot('U'), STN.mot('Isyn'), 1.0*stnToCtx)
-OneToOne(STR.cog('U'), GPI.cog('Isyn'), -2.0*gpiToStr) 
-OneToOne(STR.mot('U'), GPI.mot('Isyn'), -2.0*gpiToStr)
-AssToCog(STR.ass('U'), GPI.cog('Isyn'), gain=-2.0*gpiToStr*gpiToStr)
-AssToMot(STR.ass('U'), GPI.mot('Isyn'), gain=-2.0*gpiToStr*gpiToStr)
-OneToAll(STN.cog('U'), GPI.cog('Isyn'), gain=+1.0 )
-OneToAll(STN.mot('U'), GPI.mot('Isyn'), gain=+1.0 )
-OneToOne(GPI.cog('U'), THL.cog('Isyn'), -0.5) 
+#OneToOne(STR.cog('U'), GPI.cog('Isyn'), -2.0*gpiToStr*popPerCueGPI)
+#OneToOne(STR.mot('U'), GPI.mot('Isyn'), -2.0*gpiToStr*popPerCueGPI)
+#AssToCog(STR.ass('U'), GPI.cog('Isyn'), gain=-2.0*gpiToStr*gpiToStr*popPerCueGPI)
+#AssToMot(STR.ass('U'), GPI.mot('Isyn'), gain=-2.0*gpiToStr*gpiToStr*popPerCueGPI)
+#AssToCog(STR.ass('Z'), GPI.cog('Isyn'), gain=-2.0)
+#AssToMot(STR.ass('Z'), GPI.mot('Isyn'), gain=-2.0)
+OneToAll(STN.cog('U'), GPI.cog('Isyn'), gain=+1.0/popPerCueSTN)
+OneToAll(STN.mot('U'), GPI.mot('Isyn'), gain=+1.0/popPerCueSTN)
+OneToOne(GPI.cog('U'), THL.cog('Isyn'), -0.5)
 OneToOne(GPI.mot('U'), THL.mot('Isyn'), -0.5)
-OneToOne(THL.cog('U'), CTX.cog('Isyn'), +1.0) 
+OneToOne(THL.cog('U'), CTX.cog('Isyn'), +1.0)
 OneToOne(THL.mot('U'), CTX.mot('Isyn'), +1.0)
-OneToOne(CTX.cog('U'), THL.cog('Isyn'), 0.4*thlToCtx) 
+OneToOne(CTX.cog('U'), THL.cog('Isyn'), 0.4*thlToCtx)
 OneToOne(CTX.mot('U'), THL.mot('Isyn'), 0.4*thlToCtx)
+
 
 W = ctxStrCog._weights
 (tar, sou) = W.shape
@@ -68,7 +74,7 @@ dtype = [ ("CTX", [("mot", float, numOfCues), ("cog", float, numOfCues), ("ass",
           ("THL", [("mot", float, 4), ("cog", float, 4)]),
           ("STN", [("mot", float, 4), ("cog", float, 4)])]
 
-history = np.zeros(duration*1000, dtype)
+history = np.zeros(duration*1000+1, dtype)
 
 def reset():
     clock.reset()
@@ -128,8 +134,12 @@ def set_trial(t):
     CTX.cog['Iext'][cp2:cp2+popPerCueCTX] = getExtInput()
     CTX.mot['Iext'][mp1:mp1+popPerCueCTX] = getExtInput()
     CTX.mot['Iext'][mp2:mp2+popPerCueCTX] = getExtInput()
-    CTX.ass['Iext'][cp1:cp1+popPerCueCTX,mp1:mp1+popPerCueCTX] = get2DExtInput()
-    CTX.ass['Iext'][cp2:cp2+popPerCueCTX,mp2:mp2+popPerCueCTX] = get2DExtInput()
+    Iext = np.zeros((popCTX, popCTX))
+    Iext[cp1:cp1+popPerCueCTX,mp1:mp1+popPerCueCTX] = get2DExtInput()
+    Iext[cp2:cp2+popPerCueCTX,mp2:mp2+popPerCueCTX] = get2DExtInput()
+    CTX.ass['Iext'] = CTX.ass['Iext'] + np.reshape(Iext, popCTX*popCTX)
+    #CTX.ass['Iext'][cp1:cp1+popPerCueCTX,mp1:mp1+popPerCueCTX] = get2DExtInput()
+    #CTX.ass['Iext'][cp2:cp2+popPerCueCTX,mp2:mp2+popPerCueCTX] = get2DExtInput()
     if plot:
         plt.figure(1)
         plt.subplot(211)
@@ -139,12 +149,16 @@ def set_trial(t):
 def print_act(t):
     print "%d CTX Isyn %s" % (t*1000, sumActivity(CTX.mot['Isyn']))
     print "%d STR Isyn %s" %(t*1000, sumActivity(STR.mot['Isyn']))
-    print "%d STR mot Z %s" %(t*1000, sumActivity(STR.mot['Z']))
-    print "%d STR ass Z %s" %(t*1000, sumActivity(STR.ass['Z']))
+    #print "%d STR mot Z %s" %(t*1000, sumActivity(STR.mot['Z']))
+    #print "%d STR ass Z %s" %(t*1000, sumActivity(STR.ass['Z']))
+    print "%d STR mot Z %s" %(t*1000, sumActivity(STR.mot['U']))
+    print "%d STR ass Z %s" %(t*1000, sumActivity(STR.ass['U']))
+    print "%d STN Isyn %s" %(t*1000, sumActivity(STN.mot['Isyn']))
     print "%d STN U %s" %(t*1000, sumActivity(STN.mot['U']))
     print "%d GPI Isyn %s" %(t*1000, sumActivity(GPI.mot['Isyn']))
+    print "%d GPI V %s" %(t*1000, sumActivity(GPI.mot['V']))
     print "%d GPI U %s" %(t*1000, sumActivity(GPI.mot['U']))
-    print "%d GPI Z %s" %(t*1000, sumActivity(GPI.mot['Z']))
+    #print "%d GPI Z %s" %(t*1000, sumActivity(GPI.mot['Z']))
     print "%d THL Isyn %s" %(t*1000, sumActivity(THL.mot['Isyn']))
     #print "%d THL U %s" %(t*1000, sumActivity(THL.mot['U']))
     #print "%d STR U %s" % (t*1000, sumActivity(STR.mot['U']))
@@ -194,6 +208,7 @@ def meanActivity(population):
     return percue.mean(axis=1)
 
 def sumActivity(population):
+    if 1 : return population
     percue = np.reshape(population, (numOfCues, population.size/numOfCues))
     return percue.mean(axis=1)
 
@@ -206,11 +221,15 @@ def learn(choice, reward):
     cues_value[choice] += error* alpha_c
     # Learn
     lrate = alpha_LTP if error > 0 else alpha_LTD
-    dw = error * lrate * STR.cog.V[choice]
+    dw = error * lrate * STR.cog.U[choice]
     updateWeights(choice, dw)
 
 @after(clock.tick)
 def register(t):
+    if (t*1000) > 498 and (t*1000) < 502:
+    #if pri:
+        print_act(t)
+    #print "%d - %s" % (int(t*1000), str(STR.cog['U']))    
     history["CTX"]["cog"][t*1000] = meanActivity(CTX.cog['U'])
     history["CTX"]["mot"][t*1000] = meanActivity(CTX.mot['U'])
     global c1,c2,m1,m2
@@ -237,7 +256,7 @@ def register(t):
             learn(cog_choice, reward)
             end()
 
-print ctxStrCog._weights
+#print ctxStrCog._weights
 global decision_not_made
 start = time.time()
 for i in range(1):
@@ -249,13 +268,13 @@ for i in range(1):
     run(time=duration,dt=dt)
 end = time.time()
 print "%d secs for the session" % (end - start)
-print "Mean performance %f" % np.array(P).mean()
+#print "Mean performance %f" % np.array(P).mean()
 last = np.array(P).size/6
 np.save("performance.npy",  P)
-print "Mean performance last %d trials %.3f" % (last, np.array(P)[-last:].mean())
-print "Mean reward %f" % np.array(P).mean()
-print ctxStrCog._weights
+#print "Mean performance last %d trials %.3f" % (last, np.array(P)[-last:].mean())
+#print "Mean reward %f" % np.array(P).mean()
+#print ctxStrCog._weights
 
 if plot:
-    plt.tight_layout()
+    #plt.tight_layout()
     display_ctx(history, duration)
