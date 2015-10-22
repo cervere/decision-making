@@ -9,7 +9,7 @@ alpha_c    = 0.025
 alpha_LTP  = 0.004
 alpha_LTD  = 0.002
 Wmin, Wmax = 0.25, 0.75
-duration = 2 
+duration = 500 
 clamp   = Clamp(min=0, max=1000)
 sigmoid = Sigmoid(Vmin=0, Vmax=20, Vh=16, Vc=3)
 
@@ -30,19 +30,19 @@ THL = Structure( tau=THL_tau, rest=THL_rest, noise=0.001, activation=clamp )
 structures = (CTX, STR, STN, GPI, THL)
 
 connections = [
-    OneToOne(CTX.cog.U, STR.cog.Isyn, 1.0*strToCtx, clipWeights=False),
-    OneToOne(CTX.mot.U, STR.mot.Isyn, 1.0*strToCtx, clipWeights=False),
-    AscToAsc(CTX.ass.U, STR.ass.Isyn, 1.0*strToCtx*strToCtx, clipWeights=False),
-    CogToAss(CTX.cog.U, STR.ass.Isyn, gain=+0.2*strToCtx, clipWeights=False),
-    MotToAss(CTX.mot.U, STR.ass.Isyn, gain=+0.2*strToCtx, clipWeights=False),
+    OneToOne(CTX.cog.U, STR.cog.Isyn, 1.0*strToCtx, clipWeights=True),
+    OneToOne(CTX.mot.U, STR.mot.Isyn, 1.0*strToCtx, clipWeights=True),
+    AscToAsc(CTX.ass.U, STR.ass.Isyn, 1.0*strToCtx*strToCtx, clipWeights=True),
+    CogToAss(CTX.cog.U, STR.ass.Isyn, gain=+0.2*strToCtx, clipWeights=True),
+    MotToAss(CTX.mot.U, STR.ass.Isyn, gain=+0.2*strToCtx, clipWeights=True),
     OneToOne(CTX.cog.U, STN.cog.Isyn, 1.0*stnToCtx),
     OneToOne(CTX.mot.U, STN.mot.Isyn, 1.0*stnToCtx),
-    OneToOne(STR.cog.U, GPI.cog.Isyn, -2.0*gpiToStr),
-#    OneToOne(STR.mot.U, GPI.mot.Isyn, -2.0*gpiToStr),
-    AssToCog(STR.ass.U, GPI.cog.Isyn, gain=-2.0*gpiToStr*gpiToStr),
-#    AssToMot(STR.ass.U, GPI.mot.Isyn, gain=-2.0*gpiToStr*gpiToStr),
-    OneToAll(STN.cog.U, GPI.cog.Isyn, gain=+1.0 ),
-    OneToAll(STN.mot.U, GPI.mot.Isyn, gain=+1.0 ),
+    OneToOne(STR.cog.U, GPI.cog.Isyn, -2.0*gpiToStr*popPerCueGPI),
+    OneToOne(STR.mot.U, GPI.mot.Isyn, -2.0*gpiToStr*popPerCueGPI),
+    AssToCog(STR.ass.U, GPI.cog.Isyn, gain=-2.0*gpiToStr*gpiToStr*popPerCueGPI),
+    AssToMot(STR.ass.U, GPI.mot.Isyn, gain=-2.0*gpiToStr*gpiToStr*popPerCueGPI),
+    OneToAll(STN.cog.U, GPI.cog.Isyn, gain=+1.0/popPerCueSTN ),
+    OneToAll(STN.mot.U, GPI.mot.Isyn, gain=+1.0/popPerCueSTN ),
     OneToOne(GPI.cog.U, THL.cog.Isyn, -0.5),
     OneToOne(GPI.mot.U, THL.mot.Isyn, -0.5),
     OneToOne(THL.cog.U, CTX.cog.Isyn, +1.0),
@@ -283,7 +283,7 @@ for j in range(1):
         iterate(dt)
     #    if i > 10 and i < 20:
     #    print "%d - %s" % (i, str(STR.cog.U))
-        print_act(i*0.001)
+        #print_act(i*0.001)
     start_trial()
     for i in xrange(500,500):
         print "iterating %d" % i

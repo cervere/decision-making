@@ -3,7 +3,7 @@ from display import *
 import time
 
 # Trial duration
-duration =  501.0*millisecond
+duration =  3000.0*millisecond
 pri = False
 if duration*1000 < 50:
     pri = True
@@ -38,10 +38,10 @@ CogToAss(CTX.cog('U'), STR.ass('Isyn'), gain=+0.2*strToCtx, clipWeights=True)
 MotToAss(CTX.mot('U'), STR.ass('Isyn'), gain=+0.2*strToCtx, clipWeights=True)
 OneToOne(CTX.cog('U'), STN.cog('Isyn'), 1.0*stnToCtx)
 OneToOne(CTX.mot('U'), STN.mot('Isyn'), 1.0*stnToCtx)
-#OneToOne(STR.cog('U'), GPI.cog('Isyn'), -2.0*gpiToStr*popPerCueGPI)
-#OneToOne(STR.mot('U'), GPI.mot('Isyn'), -2.0*gpiToStr*popPerCueGPI)
-#AssToCog(STR.ass('U'), GPI.cog('Isyn'), gain=-2.0*gpiToStr*gpiToStr*popPerCueGPI)
-#AssToMot(STR.ass('U'), GPI.mot('Isyn'), gain=-2.0*gpiToStr*gpiToStr*popPerCueGPI)
+OneToOne(STR.cog('U'), GPI.cog('Isyn'), -2.0*gpiToStr*popPerCueGPI)
+OneToOne(STR.mot('U'), GPI.mot('Isyn'), -2.0*gpiToStr*popPerCueGPI)
+AssToCog(STR.ass('U'), GPI.cog('Isyn'), gain=-2.0*gpiToStr*gpiToStr*popPerCueGPI)
+AssToMot(STR.ass('U'), GPI.mot('Isyn'), gain=-2.0*gpiToStr*gpiToStr*popPerCueGPI)
 #AssToCog(STR.ass('Z'), GPI.cog('Isyn'), gain=-2.0)
 #AssToMot(STR.ass('Z'), GPI.mot('Isyn'), gain=-2.0)
 OneToAll(STN.cog('U'), GPI.cog('Isyn'), gain=+1.0/popPerCueSTN)
@@ -208,7 +208,7 @@ def meanActivity(population):
     return percue.mean(axis=1)
 
 def sumActivity(population):
-    if 1 : return population
+    if 0 : return population
     percue = np.reshape(population, (numOfCues, population.size/numOfCues))
     return percue.mean(axis=1)
 

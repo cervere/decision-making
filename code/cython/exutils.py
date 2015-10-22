@@ -7,19 +7,19 @@ Vh         =  16.0
 Vc         =   3.0
 
 numOfCues = 4
-base = 4 
-popPerCueCTX = base 
-popPerCueSTR = base 
-popPerCueGPI = base 
-popPerCueSTN = base 
-popPerCueTHL = base 
+base = 1
+popPerCueCTX = base * 16
+popPerCueSTR = base * 4
+popPerCueGPI = base * 4
+popPerCueSTN = base * 4
+popPerCueTHL = base * 4
 
-strToCtx = (1.0*popPerCueSTR)/popPerCueCTX 
-gpiToStr = (1.0)/popPerCueSTR 
-thlToGpi = (1.0)/popPerCueGPI 
-ctxToThl = (1.0*popPerCueCTX)/popPerCueTHL 
-thlToCtx = (1.0)/popPerCueCTX 
-stnToCtx = (1.0)/popPerCueCTX 
+strToCtx = (1.0*popPerCueSTR)/popPerCueCTX
+gpiToStr = (1.0)/popPerCueSTR
+thlToGpi = (1.0)/popPerCueGPI
+ctxToThl = (1.0*popPerCueCTX)/popPerCueTHL
+thlToCtx = (1.0*popPerCueTHL)/popPerCueCTX
+stnToCtx = (1.0*popPerCueSTN)/popPerCueCTX
 
 tau = 0.01
 CTX_tau, CTX_rest, CTX_noise = tau, -3.0 , 0.010

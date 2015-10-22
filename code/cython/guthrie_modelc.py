@@ -12,7 +12,7 @@ numOfCues = 4
 base = 1 
 popPerCueCTX = base * 16 
 popPerCueSTR = base * 4
-popPerCueGPI = base * 4 
+popPerCueGPI = base #* 4 
 popPerCueSTN = base * 4
 popPerCueTHL = base * 4 
 
