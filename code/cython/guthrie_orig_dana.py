@@ -2,14 +2,23 @@ from exutils import *
 from display import *
 import time
 
-plot = True
-learning = False
+ms         = 0.001
+settling   = 500*ms
+trial      = 2500*ms
+dt         = 1*ms
+duration = 3000 
+
+debug = False
+timer = False
+plot = False
+learning = True
+gaussian = True
+
 threshold  = 40
 alpha_c    = 0.025
 alpha_LTP  = 0.004
 alpha_LTD  = 0.002
 Wmin, Wmax = 0.25, 0.75
-duration = 500 
 clamp   = Clamp(min=0, max=1000)
 sigmoid = Sigmoid(Vmin=0, Vmax=20, Vh=16, Vc=3)
 
@@ -17,16 +26,20 @@ sigmoid = Sigmoid(Vmin=0, Vmax=20, Vh=16, Vc=3)
 popCTX = numOfCues*popPerCueCTX
 popSTR = numOfCues*popPerCueSTR
 
-CTX_GUASSIAN_INPUT = getNormal(popPerCueCTX)
-CTX_GUASSIAN_INPUT_2D = get2DNormal(popPerCueCTX, popPerCueCTX)
+if gaussian :
+    CTX_GUASSIAN_INPUT = getNormal(3*3*popPerCueCTX)[popPerCueCTX*1*4:popPerCueCTX*1*4+popPerCueCTX]#getNormal(popPerCueCTX)
+    CTX_GUASSIAN_INPUT_2D = get2DNormal(3*3*popPerCueCTX, 3*3*popPerCueCTX)[popPerCueCTX*1*4:popPerCueCTX*1*4+popPerCueCTX, popPerCueCTX*1*4:popPerCueCTX*1*4+popPerCueCTX]#get2DNormal(popPerCueCTX, popPerCueCTX)
+else :
+    CTX_GUASSIAN_INPUT = np.ones(popPerCueCTX)
+    CTX_GUASSIAN_INPUT_2D = np.ones((popPerCueCTX, popPerCueCTX))
 
-CTX = AssociativeStructure(popCTX,
+CTX = AssociativeStructure(numOfCues*popPerCueCTX,
                  tau=CTX_tau, rest=CTX_rest, noise=0.010, activation=clamp )
-STR = AssociativeStructure(
+STR = AssociativeStructure(numOfCues*popPerCueSTR,
                  tau=STR_tau, rest=STR_rest, noise=0.001, activation=sigmoid )
-STN = Structure( tau=STN_tau, rest=STN_rest, noise=0.001, activation=clamp )
-GPI = Structure( tau=GPI_tau, rest=GPI_rest, noise=0.030, activation=clamp )
-THL = Structure( tau=THL_tau, rest=THL_rest, noise=0.001, activation=clamp )
+STN = Structure(numOfCues*popPerCueSTN, tau=STN_tau, rest=STN_rest, noise=0.001, activation=clamp )
+GPI = Structure(numOfCues*popPerCueGPI, tau=GPI_tau, rest=GPI_rest, noise=0.030, activation=clamp )
+THL = Structure(numOfCues*popPerCueTHL, tau=THL_tau, rest=THL_rest, noise=0.001, activation=clamp )
 structures = (CTX, STR, STN, GPI, THL)
 
 connections = [
@@ -39,8 +52,8 @@ connections = [
     OneToOne(CTX.mot.U, STN.mot.Isyn, 1.0*stnToCtx),
     OneToOne(STR.cog.U, GPI.cog.Isyn, -2.0*gpiToStr*popPerCueGPI),
     OneToOne(STR.mot.U, GPI.mot.Isyn, -2.0*gpiToStr*popPerCueGPI),
-    AssToCog(STR.ass.U, GPI.cog.Isyn, gain=-2.0*gpiToStr*gpiToStr*popPerCueGPI),
-    AssToMot(STR.ass.U, GPI.mot.Isyn, gain=-2.0*gpiToStr*gpiToStr*popPerCueGPI),
+    AssToCog(STR.ass.U, GPI.cog.Isyn, gain=-2.0*gpiToStr*gpiToStr),
+    AssToMot(STR.ass.U, GPI.mot.Isyn, gain=-2.0*gpiToStr*gpiToStr),
     OneToAll(STN.cog.U, GPI.cog.Isyn, gain=+1.0/popPerCueSTN ),
     OneToAll(STN.mot.U, GPI.mot.Isyn, gain=+1.0/popPerCueSTN ),
     OneToOne(GPI.cog.U, THL.cog.Isyn, -0.5),
@@ -65,7 +78,7 @@ def updateWeights(choice, dw):
         wc = W[choice*eachtar+j, cue+j*each:cue+j*each+each]
         wc = wc + dw * (wc-Wmin)*(Wmax-wc)
         W[choice*eachtar+j, cue+j*each:cue+j*each+each] = wc
-    ctxStrCog._weights = W
+    ctxStrCog.weights = W
 
 dtype = [ ("CTX", [("mot", float, numOfCues), ("cog", float, numOfCues), ("ass", float, numOfCues*numOfCues)]),
           ("STR", [("mot", float, numOfCues), ("cog", float, numOfCues), ("ass", float, numOfCues*numOfCues)]),
@@ -73,22 +86,19 @@ dtype = [ ("CTX", [("mot", float, numOfCues), ("cog", float, numOfCues), ("ass",
           ("THL", [("mot", float, 4), ("cog", float, 4)]),
           ("STN", [("mot", float, 4), ("cog", float, 4)])]
 
-history = np.zeros(duration, dtype)
 
 def getExtInput():
-    v = 18 
+    v = 10 
     noise = 0.01
     return (CTX_GUASSIAN_INPUT )*(np.random.normal(v,noise)) 
 #+  np.random.normal(0,noise)
 
 def get2DExtInput():
-    v = 18 
+    v =  10 
     noise = 0.01
     return (CTX_GUASSIAN_INPUT_2D)*(np.random.normal(v,noise)) 
 #+ np.random.normal(0,v*noise)
 
-#cues_mot = np.array([0,1,2,3])
-#cues_cog = np.array([0,1,2,3])
 cues_value = np.ones(4) * 0.5
 cues_reward = np.array([3.,2.,1.,0.0])/4.
 Z = [[0,1], [0,2], [0,3], [1,2], [1,3], [2,3]]
@@ -109,8 +119,6 @@ def start_trial():
     global c1,c2,m1,m2
     c1,c2 = cues_cog
     m1,m2 = cues_mot
-    #c1,c2 = 0,1 
-    #m1,m2 = 2,3
     cp1, cp2 = c1 * popPerCueCTX, c2 * popPerCueCTX
     mp1, mp2 = m1 * popPerCueCTX, m2 * popPerCueCTX
     CTX.cog.Iext = 0
@@ -123,9 +131,7 @@ def start_trial():
     ext = np.zeros((popCTX,popCTX))
     ext[cp1:cp1+popPerCueCTX,mp1:mp1+popPerCueCTX] = get2DExtInput()
     ext[cp2:cp2+popPerCueCTX,mp2:mp2+popPerCueCTX] = get2DExtInput()
-    ext = np.reshape(ext,(popCTX*popCTX,1))
-    for i in range(ext.shape[0]):
-        CTX.ass.Iext[i] = ext[i] 
+    CTX.ass.Iext = CTX.ass.Iext + np.reshape(ext,popCTX*popCTX)
     if plot:
         plt.figure(1)
         plt.subplot(211)
@@ -136,31 +142,32 @@ flu = 0.0
 prop = 0.0
 evaluate = 0.0
 con_times = np.zeros(len(connections))
+
 def iterate(dt):
     global connections, structures
     global flu, prop, evaluate
     global con_times
 
-    f = time.time()
+    #f = time.time()
     # Flush connections
     for connection in connections:
         connection.flush()
 
-    flu += (time.time() - f)
+    #flu += (time.time() - f)
     # Propagate activities
-    f = time.time()
+    #f = time.time()
     #for connection in connections:
     for i in range(len(connections)):
-        s = time.time()
+    #    s = time.time()
         connections[i].propagate()
-        con_times[i] += (time.time() - s)
-    prop += (time.time() - f)
+     #   con_times[i] += (time.time() - s)
+    #prop += (time.time() - f)
 
     # Compute new activities
-    f = time.time()
+    #f = time.time()
     for structure in structures:
         structure.evaluate(dt)
-    evaluate += (time.time() - f)
+    #evaluate += (time.time() - f)
 
     
 
@@ -210,8 +217,6 @@ def plot_per_neuron(cog, mot, ylabel, title):
     plt.legend(frameon=False, loc='upper center')
 
 def reset_trial(t):
-    print sumActivity(CTX.cog.U)
-    print sumActivity(CTX.mot.U)
     if plot:
         plt.figure(1)
         plt.subplot(212)
@@ -241,73 +246,87 @@ def learn(choice, reward):
     dw = error * lrate * STR.cog.V[choice]
     updateWeights(choice, dw)
 
-def register(t):
-    history["CTX"]["cog"][t*1000] = meanActivity(CTX.cog.U)
-    history["CTX"]["mot"][t*1000] = meanActivity(CTX.mot.U)
+def register(time, debug=True):
     global c1,c2,m1,m2
-    global decision_not_made
-    meanAct = meanActivity(CTX.mot.U)
-    if decision_not_made and (meanAct.max() - meanAct.min() > 40.0):
-        decision_not_made = False
-        mot_choice = np.argmax(meanAct)
-        cog_choice = np.argmax(meanAct)
-        if mot_choice == m1:
-            cog_choice = c1
-        elif mot_choice == m2:
-            cog_choice = c2
-        if cog_choice == min(c1,c2):
-            P.append(1)
-            st = "good"
-        else : 
-            P.append(0)
-            st = "bad"
-        reward = np.random.uniform(0,1) < cues_reward[cog_choice]
-        R.append(reward)
+    if CTX.mot.choice == m1:
+        cog_choice = c1
+    elif CTX.mot.choice == m2:
+        cog_choice = c2
+    if cog_choice == min(c1,c2):
+        P.append(1)
+        st = "good"
+    else : 
+        P.append(0)
+        st = "bad"
+    reward = np.random.uniform(0,1) < cues_reward[cog_choice]
+    R.append(reward)
+    if learning : 
+        learn(cog_choice, reward)
+    if not debug: 
         print "choice made -%d- of (%d,%d) - %s" % (cog_choice, c1, c2, st)
-        if learning : 
-            learn(cog_choice, reward)
-            end()
+        return
+
+    # Just for displaying ordered cue
+    oc1,oc2 = min(c1,c2), max(c1,c2)
+    if cog_choice == oc1:
+        print "Choice:          [%d] / %d  (good)" % (oc1,oc2)
+    else:
+        print "Choice:           %d / [%d] (bad)" % (oc1,oc2)
+    print "Reward (%3d%%) :   %d" % (int(100*cues_reward[cog_choice]),reward)
+    print "Mean performance: %.3f" % np.array(P)[-20:].mean()
+    print "Mean reward:      %.3f" % np.array(R).mean()
+    print "Response time:    %d ms" % (time)
+
 
 #print ctxStrCog.weights
-global decision_not_made
+num_trials = 120
 start = time.time()
-dt = 0.001
-for j in range(1):
-    cues_cog = Z[C[i]]
-    cues_mot = Z[M[i]]
+for j in range(num_trials):
+    cues_cog = Z[C[j]]
+    cues_mot = Z[M[j]]
     reset()
-    print "Running trial - %d" % j 
-    decision_not_made = True
-    for i in xrange(0,duration):
-        #print "iterating %d" % i
+    if debug : print "Running trial - %d" % j 
+
+    # Settling phase (500ms)
+    i0 = 0
+    i1 = i0+int(settling/dt)
+    for i in xrange(i0,i1):
         iterate(dt)
-    #    if i > 10 and i < 20:
-    #    print "%d - %s" % (i, str(STR.cog.U))
-        #print_act(i*0.001)
+
     start_trial()
-    for i in xrange(500,500):
-        print "iterating %d" % i
+
+    # Learning phase (2500ms)
+    i0 = int(settling/dt)
+    i1 = i0+int(trial/dt)
+    for i in xrange(i0,i1):
         iterate(dt)
-    #stop_trial()
-    #for i in xrange(2500,3000):
-    #    print "iterating %d" % i
-    #    iterate(dt)
-history["CTX"]["mot"]   = CTX.mot.history[:duration]
-history["CTX"]["cog"]   = CTX.cog.history[:duration]
+        if CTX.mot.delta > threshold:
+            register(time=i-500, debug=debug)
+            break
+
+    # Debug information
+    if debug:
+        if i >= (i1-1):
+            print "! Failed trial"
+        print
 
 end = time.time()
-np.save("history.npy", history)
-print "%d secs for the session" % (end - start)
-print "(flush - %d, propagate - %d, evaluate - %d) secs for the session" % (flu, prop, evaluate)
-#print con_times
-print np.sum(con_times)
-#print "Mean performance %f" % np.array(P).mean()
+
+print "%d secs for the session with %d trials" % ((end - start), num_trials)
+if timer:
+    print "(flush - %d, propagate - %d, evaluate - %d) secs for the session" % (flu, prop, evaluate)
+    print con_times
+print "Mean performance %f" % np.array(P).mean()
 last = np.array(P).size/6
-np.save("performance.npy",  P)
-#print "Mean performance last %d trials %.3f" % (last, np.array(P)[-last:].mean())
-#print "Mean reward %f" % np.array(P).mean()
-#print ctxStrCog.weights
+np.save("performance-cyt.npy",  np.array(P))
+print "Mean performance last %d trials %.3f" % (last, np.array(P)[-last:].mean())
+print "Mean reward %f" % np.array(P).mean()
+np.save("weights-cyt.npy", ctxStrCog.weights)
 
 if plot:
+    history = np.zeros(duration, dtype)
+    history["CTX"]["mot"]   = CTX.mot.history[:duration]
+    history["CTX"]["cog"]   = CTX.cog.history[:duration]
+    np.save("history.npy", history)
     plt.tight_layout()
-    display_ctx(history, 0.5)
+    display_ctx(history, duration*ms)

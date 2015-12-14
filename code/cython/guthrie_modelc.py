@@ -10,7 +10,7 @@ Vc         =   3.0
 
 numOfCues = 4
 base = 1 
-popPerCueCTX = base * 4 * 16 
+popPerCueCTX = base * 16 * 4 
 popPerCueSTR = base * 4
 popPerCueGPI = base * 4 
 popPerCueSTN = base * 4
@@ -22,6 +22,7 @@ thlToGpi = (1.0)/popPerCueGPI
 ctxToThl = (1.0*popPerCueCTX)/popPerCueTHL 
 thlToCtx = (1.0*popPerCueTHL)/popPerCueCTX 
 stnToCtx = (1.0*popPerCueSTN)/popPerCueCTX 
+gpiToStn = (1.0)/popPerCueSTN
 
 tau = 0.01
 CTX_tau, CTX_rest, CTX_noise = tau, -3.0 , 0.010
@@ -68,8 +69,8 @@ class Structure:
             self._cog = Group(pop, 'dV/dt = (-V + Isyn + Iext - CTX_rest)/CTX_tau ; U = unoise(clamp(V) , CTX_noise); Z=U*strToCtx; T=U*thlToCtx; N=U*stnToCtx; Isyn ; Iext ')
             self._mot = Group(pop, 'dV/dt = (-V + Isyn + Iext - CTX_rest)/CTX_tau ; U = unoise(clamp(V) , CTX_noise); Z=U*strToCtx; T=U*thlToCtx; N=U*stnToCtx; Isyn ; Iext ')
         elif structure == 'STR':
-            self._cog = Group(pop, 'dV/dt = (-V + Isyn + Iext - STR_rest)/STR_tau ; U = unoise(sigmoid(V) , STR_noise); Z=U*gpiToStr; Isyn ; Iext ')
-            self._mot = Group(pop, 'dV/dt = (-V + Isyn + Iext - STR_rest)/STR_tau ; U = unoise(sigmoid(V) , STR_noise); Z=U*gpiToStr; Isyn ; Iext ')
+            self._cog = Group(pop, 'dV/dt = (-V + Isyn + Iext - STR_rest)/STR_tau ; U = unoise(sigmoid(V) , STR_noise); Z=U*gpiToStr*popPerCueGPI; Isyn ; Iext ')
+            self._mot = Group(pop, 'dV/dt = (-V + Isyn + Iext - STR_rest)/STR_tau ; U = unoise(sigmoid(V) , STR_noise); Z=U*gpiToStr*popPerCueGPI; Isyn ; Iext ')
         elif structure == 'GPI':
             self._cog = Group(pop, 'dV/dt = (-V + Isyn + Iext - GPI_rest)/GPI_tau ; U = unoise(clamp(V) , GPI_noise); Z=U*thlToGpi; Isyn ; Iext ')
             self._mot = Group(pop, 'dV/dt = (-V + Isyn + Iext - GPI_rest)/GPI_tau ; U = unoise(clamp(V) , GPI_noise); Z=U*thlToGpi; Isyn ; Iext ')
@@ -77,8 +78,8 @@ class Structure:
             self._cog = Group(pop, 'dV/dt = (-V + Isyn + Iext - THL_rest)/THL_tau ; U = unoise(clamp(V) , THL_noise); Z=U*ctxToThl; Isyn ; Iext ')
             self._mot = Group(pop, 'dV/dt = (-V + Isyn + Iext - THL_rest)/THL_tau ; U = unoise(clamp(V) , THL_noise); Z=U*ctxToThl; Isyn ; Iext ')
         elif structure == 'STN':
-            self._cog = Group(pop, 'dV/dt = (-V + Isyn + Iext - STN_rest)/STN_tau ; U = unoise(clamp(V) , STN_noise); Isyn ; Iext ')
-            self._mot = Group(pop, 'dV/dt = (-V + Isyn + Iext - STN_rest)/STN_tau ; U = unoise(clamp(V) , STN_noise); Isyn ; Iext ')
+            self._cog = Group(pop, 'dV/dt = (-V + Isyn + Iext - STN_rest)/STN_tau ; U = unoise(clamp(V) , STN_noise); Z=U*gpiToStn; Isyn ; Iext ')
+            self._mot = Group(pop, 'dV/dt = (-V + Isyn + Iext - STN_rest)/STN_tau ; U = unoise(clamp(V) , STN_noise); Z=U*gpiToStn; Isyn ; Iext ')
 
 
     @property

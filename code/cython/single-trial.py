@@ -113,17 +113,17 @@ for j in range(1):
     reset()
     for i in xrange(0,500):
         iterate(dt)
+    print CTX.mot.Iext
+    print CTX.mot.V
+    print CTX.mot.U
     start_trial()
     for i in xrange(500,2500):
         iterate(dt)
-        if i == 500 or i == 501:
-            print CTX.mot.Iext
-            print CTX.mot.V
-            print CTX.mot.U
     #stop_trial()
     for i in xrange(2500,3000):
         iterate(dt)
 
+print GPI.mot.V
 
 # -----------------------------------------------------------------------------
 from display import *

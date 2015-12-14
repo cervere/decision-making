@@ -1,0 +1,16 @@
+from dana import *
+from guthrie_model import *
+
+clamp   = Clamp(min=0, max=100)
+sigmoid = Sigmoid(Vmin=0, Vmax=20, Vh=16, Vc=3)
+tau, rest, noise = 0.01, -3.0, 0.01
+
+CTX = AssociativeStructure(
+                 tau=tau, rest=- 3.0, noise=0.010, activation=clamp )
+STR = AssociativeStructure(
+                 tau=tau, rest=  0.0, noise=0.001, activation=sigmoid )
+STN = Structure( tau=tau, rest=-10.0, noise=0.001, activation=clamp )
+GPI = Structure( tau=tau, rest=+10.0, noise=0.030, activation=clamp )
+THL = Structure( tau=tau, rest=-40.0, noise=0.001, activation=clamp )
+
+

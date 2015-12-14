@@ -10,7 +10,7 @@ Vc         =   3.0
 
 numOfCues = 4
 
-popPerCueCTX = 64 
+popPerCueCTX = 4 
 popPerCueSTR = 4 
 popPerCueGPI = 4 
 popPerCueSTN = 4 

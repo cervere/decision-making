@@ -23,8 +23,7 @@ trial      = 2500*ms
 dt         = 1*ms
 
 getWeights = True
-getWeights = False
-debug      = True
+debug      = False
 threshold  = 40
 alpha_c    = 0.025
 alpha_LTP  = 0.004
@@ -247,10 +246,9 @@ def run_session(stim=[], delay=0, salience=0):
         i0 = int(settling/dt)
         i1 = i0+int(trial/dt)
         for i in xrange(i0,i1):
-            if not getWeights:
-                if i == i0 + delay:
-                    print "introducing second stimulus"
-                    second_stimulus()
+            if not getWeights and i == i0 + delay:
+                print "introducing second stimulus"
+                second_stimulus()
             iterate(dt)
             # Test if a decision has been made
             if CTX.mot.delta > threshold:
@@ -263,19 +261,28 @@ def run_session(stim=[], delay=0, salience=0):
                 print "! Failed trial"
             print
 
-if getWeights:
-    P, R = [], []
-    run_session()
-    print "Done with learning. Saving weights to cog-weights.npy"
-    np.save("cog-weights.npy", W)
-    exit()
-
-possible_cues = ([1,0],[2,0],[3,0],[2,1],[3,1],[3,2])
-
+possible_cues = ([1,0]) #,[2,0],[3,0],[2,1],[3,1],[3,2])
 # Introducing less rewarding stimulus with a salience
 saliences = (0,0.5,1,1.5,2,2.5)
-perf_for_salience = np.zeros((np.size(saliences),np.shape(possible_cues)[0])) 
+# Only one cue combination
+perf_for_salience = np.zeros((np.size(saliences), num_trials))
+#perf_for_salience = np.zeros((np.size(saliences),np.shape(possible_cues)[0])) 
 delay = 0
+
+if getWeights:
+    learn_sessions = 100  
+    weights_ses = np.zeros((learn_sessions, 4))
+    for i in range(learn_sessions):
+        P, R = [], []
+        W[...] = weights(4) 
+        cues_value = np.ones(4) * 0.5
+        run_session()
+        weights_ses[i] = W
+        print "Session %d - Done with learning. Saving weights" % i
+        print "Mean performance: %.3f" % np.array(P)[-20:].mean()
+    np.save("cog-weights.npy", weights_ses)
+    exit()
+
 for d in range(np.size(saliences)):
     salience = saliences[d]
     perf = np.zeros(np.shape(possible_cues)[0])
@@ -289,14 +296,16 @@ print perf_for_salience
 np.save("perf_for_salience.npy",perf_for_salience)
 plot_lines(1, 1, np.transpose(perf_for_salience)[:3], saliences, possible_cues[:3])
 plt.ylabel('Performance')
+plt.xlabel('Salience (sp/s)')
 plot_lines(1, 2, np.transpose(perf_for_salience)[3:5], saliences, possible_cues[3:5])
-plt.xlabel('Salience')
+plt.ylabel('Performance')
+plt.xlabel('Salience (sp/s)')
 plot_lines(1, 3, np.transpose(perf_for_salience)[5], saliences, possible_cues[5])
 plt.ylabel('Performance')
-plt.xlabel('Salience')
+plt.xlabel('Salience (sp/s)')
 fig = plt.figure(1)
-fig.suptitle("Performance - less rewarding stimulus first - with salience")
-
+#fig.suptitle("Performance - less rewarding stimulus first - with salience")
+plt.tight_layout()
 plt.savefig("performances-with-saliences.pdf")
 
 # Introducing more rewarding stimulus with a delay
@@ -316,15 +325,17 @@ print perf_for_delay
 np.save("perf_for_delay.npy",perf_for_delay)
 
 plot_lines(2, 1, np.transpose(perf_for_delay)[:3], delays, possible_cues[:3])
+plt.xlabel('Delay (ms)')
 plt.ylabel('Performance')
 plot_lines(2, 2, np.transpose(perf_for_delay)[3:5], delays, possible_cues[3:5])
 plt.xlabel('Delay (ms)')
+plt.ylabel('Performance')
 plot_lines(2, 3, np.transpose(perf_for_delay)[5], delays, possible_cues[5])
 plt.xlabel('Delay (ms)')
 plt.ylabel('Performance')
 fig = plt.figure(2)
-fig.suptitle("Performance - more rewarding stimulus later - with delay")
-
+#fig.suptitle("Performance - more rewarding stimulus later - with delay")
+plt.tight_layout()
 plt.savefig("performances-with-delays.pdf")
 plt.show()
 

@@ -1,0 +1,6 @@
+            for j in range(n):
+                self._units[i,j].V = 0
+                self._units[i,j].U = 0
+                self._units[i,j].Isyn = 0
+                self._units[i,j].Iext = 0
+    

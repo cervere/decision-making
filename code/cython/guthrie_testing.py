@@ -12,6 +12,7 @@ dt = 1.0*millisecond
 
 plot = True
 learning = False
+gaussian = True
 threshold  = 40
 alpha_c    = 0.025
 alpha_LTP  = 0.004
@@ -22,8 +23,13 @@ Wmin, Wmax = 0.25, 0.75
 popCTX = numOfCues*popPerCueCTX
 popSTR = numOfCues*popPerCueSTR
 
-CTX_GUASSIAN_INPUT = getNormal(3*3*popPerCueCTX)[popPerCueCTX*1*4:popPerCueCTX*1*4+popPerCueCTX]
-CTX_GUASSIAN_INPUT_2D = get2DNormal(3*3*popPerCueCTX, 3*3*popPerCueCTX)[popPerCueCTX*1*4:popPerCueCTX*1*4+popPerCueCTX, popPerCueCTX*1*4:popPerCueCTX*1*4+popPerCueCTX]
+if gaussian :
+    CTX_GUASSIAN_INPUT = getNormal(3*3*popPerCueCTX)[popPerCueCTX*1*4:popPerCueCTX*1*4+popPerCueCTX]#getNormal(popPerCueCTX)
+    CTX_GUASSIAN_INPUT_2D = get2DNormal(3*3*popPerCueCTX, 3*3*popPerCueCTX)[popPerCueCTX*1*4:popPerCueCTX*1*4+popPerCueCTX, popPerCueCTX*1*4:popPerCueCTX*1*4+popPerCueCTX]#get2DNormal(popPerCueCTX, popPerCueCTX)
+else :
+    CTX_GUASSIAN_INPUT = np.ones(popPerCueCTX)
+    CTX_GUASSIAN_INPUT_2D = np.ones((popPerCueCTX, popPerCueCTX))
+
 
 CTX = AssociativeStructure("CTX", pop=numOfCues*popPerCueCTX)
 STR = AssociativeStructure("STR", pop=numOfCues*popPerCueSTR)
@@ -87,13 +93,13 @@ def reset():
     CTX.ass['Iext'] = 0
 
 def getExtInput():
-    v = 8 
+    v = 10 
     noise = 0.01
     return (CTX_GUASSIAN_INPUT )*(np.random.normal(v,noise)) 
 #+  np.random.normal(0,noise)
 
 def get2DExtInput():
-    v = 8 
+    v = 10 
     noise = 0.01
     return (CTX_GUASSIAN_INPUT_2D)*(np.random.normal(v,noise)) 
 #+ np.random.normal(0,v*noise)
@@ -193,9 +199,6 @@ def plot_per_neuron(cog, mot, ylabel, title):
 
 @clock.at(2500*millisecond)
 def reset_trial(t):
-    print sumActivity(CTX.mot['U'])
-    print sumActivity(GPI.mot['Isyn'])
-    print sumActivity(GPI.mot['U'])
     if plot:
         plt.figure(1)
         plt.subplot(212)
@@ -260,22 +263,21 @@ def register(t):
 #print ctxStrCog._weights
 global decision_not_made
 start = time.time()
-for i in range(1):
+for i in range(10):
     cues_cog = Z[C[i]]
     cues_mot = Z[M[i]]
     reset()
-    print "Running trial - %d" % i
     decision_not_made = True
     run(time=duration,dt=dt)
 end = time.time()
 print "%d secs for the session" % (end - start)
-#print "Mean performance %f" % np.array(P).mean()
+print "Mean performance %f" % np.array(P).mean()
 last = np.array(P).size/6
 np.save("performance.npy",  P)
-#print "Mean performance last %d trials %.3f" % (last, np.array(P)[-last:].mean())
-#print "Mean reward %f" % np.array(P).mean()
-#print ctxStrCog._weights
-
+print "Mean performance last %d trials %.3f" % (last, np.array(P)[-last:].mean())
+print "Mean reward %f" % np.array(P).mean()
+np.save("weights-dana.npy", ctxStrCog._weights)
+print ctxStrCog._weights
 if plot:
     #plt.tight_layout()
     display_ctx(history, duration)

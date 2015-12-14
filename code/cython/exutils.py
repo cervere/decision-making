@@ -8,7 +8,7 @@ Vc         =   3.0
 
 numOfCues = 4
 base = 1
-popPerCueCTX = base * 16
+popPerCueCTX = base * 16 * 4 
 popPerCueSTR = base * 4
 popPerCueGPI = base * 4
 popPerCueSTN = base * 4
@@ -137,6 +137,11 @@ def getConnection(source, target, kernel, gain, clipWeights):
         kernel = limitWeights(kernel)
     return Connection(source, target, kernel, gain)
 
+def getAscConnection(source, target, kernel, gain, clipWeights):
+    if clipWeights:
+        kernel = limitWeights(kernel)
+    return AscToAscConnection(source, target, kernel, gain)
+
 def OneToOne(source, target, gain=1.0, clipWeights=False):
     kernel = OneToOneWeights(source.size, target.size)
     return getConnection(source, target, kernel, gain, clipWeights)
@@ -145,7 +150,19 @@ def AscToAsc(source, target, gain=1.0, clipWeights=False):
     spop = int(np.sqrt(source.size))
     tpop = int(np.sqrt(target.size))
     kernel = AscToAscWeights((spop,spop), (tpop,tpop))
-    return getConnection(source, target, kernel, gain, clipWeights)
+
+    condKernel = np.zeros((kernel.shape[0], kernel.shape[0]))
+    mx = max(spop, tpop)
+    mn = min(spop, tpop)
+    fac = mx/mn 
+    for i in range(kernel.shape[0]):
+        W = np.reshape(kernel[i], (spop,spop))
+        EW = np.add.reduceat(np.add.reduceat(W, np.arange(0, W.shape[0], fac), axis=0), np.arange(0, W.shape[1], fac), axis=1)
+        EWC = np.reshape(EW, EW.size)
+        EWC = np.array(EWC) / (1.0*fac*fac)
+        condKernel[i,:] = EWC
+
+    return getAscConnection(source, target, condKernel, gain, clipWeights)
 
 def OneToAll(source, target, gain=1.0, clipWeights=False):
     kernel = OneToAllWeights(source.size, target.size)

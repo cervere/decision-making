@@ -23,7 +23,6 @@ dt         = 1*ms
 
 #debug      = True
 testing    = True
-testing    = False
 debug      = False
 mot_learning = False
 #mot_learning = True
@@ -391,6 +390,7 @@ if testing: figname = 'test-'+figname
 
 for i in 1+np.arange(4):
     plt.figure(i)
+    plt.tight_layout()
     plt.savefig(figname + "-"+str(i)+".pdf")
 
 print "Only Cognitive learning"

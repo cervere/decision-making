@@ -94,6 +94,8 @@ cdef class Group:
     cdef double      _rest
     cdef double      _noise
     cdef double      _delta
+    cdef int         _choice
+    cdef int         _pop
     cdef ctype[:]    _units
     cdef Function    _activation
     cdef Function    _unoise
@@ -101,16 +103,19 @@ cdef class Group:
     cdef double[:,:] _history
     cdef int         _numOfCues
 
-    def __init__(self, units, tau=0.01, rest=0.0, noise=0.0, activation = Identity()):
+    def __init__(self, pop, dim=1, tau=0.01, rest=0.0, noise=0.0, activation = Identity()):
         self._tau = tau
         self._rest = rest
         self._unoise = UniformNoise(noise)
-        self._units = units
+        self._pop = pop
+        if dim == 1 : self._units = np.zeros(self._pop,dtype=dtype)
+        elif dim == 2 : self._units = np.zeros(self._pop * self._pop,dtype=dtype)
         self._delta = 0
+        self._choice = -1
         self._activation = activation
         self._history_index = 0
         self._numOfCues = 4
-        self._history = np.zeros((10000, self._numOfCues))#num of cues is 4
+        self._history = np.zeros((10000, self._numOfCues))
 
     property history:
         """ Activity history (firing rate) """
@@ -118,9 +123,19 @@ cdef class Group:
             return np.asarray(self._history)
 
     property delta:
-        """ Difference of activity between the first two maximum activites """
+        """ Difference of activity between the first two maximum mean activites of the population"""
         def __get__(self):
             return self._delta
+
+    property choice:
+        """ Cue index, which has mean activity higher than that of others"""
+        def __get__(self):
+            return self._choice
+
+    property pop:
+        """ Population of the _units; If associative, length of each row"""
+        def __get__(self):
+            return self._pop
 
     property tau:
         """ Membrane time constant """
@@ -163,15 +178,10 @@ cdef class Group:
         """ Compute activities (Forward Euler method) """
 
         cdef int i
-#        cdef int m,n
         cdef noise
         cdef ctype * unit
         cdef double max1=0, max2=0
         cdef double[:] meanAct
-#        m = self._units.shape[0]
-#        n = self._units.shape[1]
-        #for i in range(m):
-            #for j in range(n):
         for i in range(len(self._units)):
             if 1:
                 unit = & self._units[i]
@@ -181,7 +191,7 @@ cdef class Group:
                 unit.V += dt/self._tau*(-unit.V + unit.Isyn + unit.Iext - self._rest )
                 # Update firing rate
                 unit.U = self._unoise.call(self._activation.call(unit.V))
-                #unit.U = self._unoise(self._activation.call(unit.V), self._noise)
+                #unit.U = self._activation.call(unit.V + self._noise)
                 # Store firing rate activity
                 #self._history[self._history_index,i] = unit.U
 
@@ -190,7 +200,6 @@ cdef class Group:
                 #if unit.U > max1:   max1 = unit.U
                 #elif unit.U > max2: max2 = unit.U
         # Store firing rate activity
-        #meanActivity(np.asarray(self._units)["U"], 4, self._history[self._history_index,:])
         population = np.asarray(self._units)["U"]
         meanAct = np.reshape(population, (self._numOfCues, population.size/self._numOfCues)).mean(axis=1)
         for i in range(meanAct.shape[0]):
@@ -200,6 +209,7 @@ cdef class Group:
             elif meanAct[i] > max2: max2 = meanAct[i]
 
         self._delta = max1 - max2
+        self._choice = np.argmax(meanAct)
         self._history_index +=1
 
 
@@ -207,12 +217,7 @@ cdef class Group:
         """ Reset all activities and history index """
 
         cdef int i
-        #cdef int m,n
         self._history_index = 0
-        #m = self._units.shape[0]
-        #n = self._units.shape[1]
-        #for i in range(m):
-        #    for j in range(n):
         for i in range(len(self._units)):
             if 1:
                 self._units[i].V = 0
@@ -241,9 +246,9 @@ cdef class Structure:
     cdef Group _cog
 
     def __init__(self, pop=16, tau=0.01, rest=0, noise=0, activation=Identity()):
-        self._mot = Group(np.zeros(pop,dtype=dtype), tau=tau, rest=rest,
+        self._mot = Group(pop, dim=1, tau=tau, rest=rest,
                            noise=noise, activation=activation)
-        self._cog = Group(np.zeros(pop,dtype=dtype), tau=tau, rest=rest,
+        self._cog = Group(pop, dim=1, tau=tau, rest=rest,
                          noise=noise, activation=activation)
 
     property mot:
@@ -272,7 +277,7 @@ cdef class AssociativeStructure(Structure):
 
     def __init__(self, pop=16, tau=0.01, rest=0, noise=0, activation=Identity()):
         Structure.__init__(self, pop, tau, rest, noise, activation)
-        self._ass = Group(np.zeros(pop*pop,dtype=dtype), tau=tau, rest=rest,
+        self._ass = Group(pop, dim=2, tau=tau, rest=rest,
                           noise=noise, activation=activation)
 
     def evaluate(self, double dt):
@@ -294,49 +299,40 @@ cdef class Connection:
     cdef double[:] _source
     cdef double[:] _target
     cdef double[:,:] _weights
-    cdef long[:,:] _effweights
+    cdef long[:,:] _effcons
     cdef double    _gain
-    #cdef int _m,_n
-    #cdef int _p,_q
+    cdef int _spop
+    cdef long _stt
 
     def __init__(self, source, target, weights, gain):
         self._gain = gain
         self._source = source
+        self._spop = int(np.sqrt(len(self._source)))
         self._target = target
         self._weights = weights
         cdef int i,j,k
         cdef double[:] con
         cdef long[:] act
-        effw = []
+        effc = []
         for i in range(self._weights.shape[0]):
             con = np.asarray(self._weights[i])
             act = np.nonzero(con)[0] 
-            effw.append(act)
-        self._effweights = np.asarray(effw) 
-        #self._m = self._target.shape[0]
-        #self._n = self._target.shape[1]
-        #self._p = self._source.shape[0]
-        #self._q = self._source.shape[1]
+            effc.append(act)
+        self._effcons = np.asarray(effc) 
+
+        self._stt = self._spop / int(np.sqrt(self._weights.shape[1]))
 
     def flush(self):
         cdef int i
         for i in range(self._target.shape[0]):
-            #for j in range(self._target.shape[1]):
-            if 1:
                 self._target[i] = 0.0
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     def propagate(self):
         cdef int i,j
-        cdef double[:] con
-        cdef long[:] act
         for i in range(self._weights.shape[0]):
-            #con = self._weights[i]
-            #act = np.nonzero(con)[0] 
-            #for j in act:
-            for j in range(self._weights.shape[1]):
-            #for j in self._weights[i]:
+            for j in self._effcons[i]:
                 self._target[i] += self._source[j] * self._weights[i,j] * self._gain
 
     property gain:
@@ -362,5 +358,22 @@ cdef class Connection:
             return np.asarray(self._weights)
         def __set__(self, weights):
             self._weights = weights
+
+
+# --- OneToOne---
+cdef class AscToAscConnection(Connection):
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    def propagate(self):
+        cdef int i,j
+        cdef double[:,:] Z, R
+        cdef double[:] RC
+        Z = np.reshape(self._source, (self._spop, self._spop))
+        R = np.add.reduceat(np.add.reduceat(Z, np.arange(0, Z.shape[0], self._stt), axis=0), np.arange(0, Z.shape[1], self._stt), axis=1)
+        RC = np.reshape(R, np.array(R).size)
+        for i in range(self._weights.shape[0]):
+            for j in self._effcons[i]:
+                self._target[i] += RC[j] * self._weights[i,j] * self._gain
 
 

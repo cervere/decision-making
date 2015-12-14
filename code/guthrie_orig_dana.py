@@ -205,13 +205,13 @@ def learn(choice, reward):
     cues_value[choice] += error* alpha_c
     # Learn
     lrate = alpha_LTP if error > 0 else alpha_LTD
-    dw = error * lrate * STR.cog.V[choice]
+    dw = error * lrate * STR.cog.U[choice]
     updateWeights(choice, dw)
 
 @after(clock.tick)
 def register(t):
-    history["CTX"]["cog"][t*1000] = meanActivity(CTX.cog['U'])
-    history["CTX"]["mot"][t*1000] = meanActivity(CTX.mot['U'])
+    #history["CTX"]["cog"][t*1000] = meanActivity(CTX.cog['U'])
+    #history["CTX"]["mot"][t*1000] = meanActivity(CTX.mot['U'])
     global c1,c2,m1,m2
     meanAct = meanActivity(CTX.mot['U'])
     if meanAct.max() - meanAct.min() > 40.0:
@@ -230,7 +230,7 @@ def register(t):
         reward = np.random.uniform(0,1) < cues_reward[cog_choice]
         R.append(reward)
         print "choice made -%d- of (%d,%d) - %s" % (cog_choice, c1, c2, st)
-        if 1 : learn(cog_choice, reward)
+        if 0 : learn(cog_choice, reward)
         end()
 
 print ctxStrCog._weights

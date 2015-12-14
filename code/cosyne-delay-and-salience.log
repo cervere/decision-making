@@ -1,0 +1,140 @@
+Simulation for [1, 0] with salience difference - 0.000000
+Simulation for [1, 0] with salience difference - 0.700000
+Simulation for [1, 0] with salience difference - 1.050000
+Simulation for [1, 0] with salience difference - 1.400000
+Simulation for [1, 0] with salience difference - 1.750000
+Simulation for [1, 0] with salience difference - 2.100000
+Simulation for [1, 0] with salience difference - 2.450000
+Simulation for [2, 0] with salience difference - 0.000000
+Simulation for [2, 0] with salience difference - 0.700000
+Simulation for [2, 0] with salience difference - 1.050000
+Simulation for [2, 0] with salience difference - 1.400000
+Simulation for [2, 0] with salience difference - 1.750000
+Simulation for [2, 0] with salience difference - 2.100000
+Simulation for [2, 0] with salience difference - 2.450000
+Simulation for [3, 0] with salience difference - 0.000000
+Simulation for [3, 0] with salience difference - 0.700000
+Simulation for [3, 0] with salience difference - 1.050000
+Simulation for [3, 0] with salience difference - 1.400000
+Simulation for [3, 0] with salience difference - 1.750000
+Simulation for [3, 0] with salience difference - 2.100000
+Simulation for [3, 0] with salience difference - 2.450000
+Simulation for [2, 1] with salience difference - 0.000000
+Simulation for [2, 1] with salience difference - 0.700000
+Simulation for [2, 1] with salience difference - 1.050000
+Simulation for [2, 1] with salience difference - 1.400000
+Simulation for [2, 1] with salience difference - 1.750000
+Simulation for [2, 1] with salience difference - 2.100000
+Simulation for [2, 1] with salience difference - 2.450000
+Simulation for [3, 1] with salience difference - 0.000000
+Simulation for [3, 1] with salience difference - 0.700000
+Simulation for [3, 1] with salience difference - 1.050000
+Simulation for [3, 1] with salience difference - 1.400000
+Simulation for [3, 1] with salience difference - 1.750000
+Simulation for [3, 1] with salience difference - 2.100000
+Simulation for [3, 1] with salience difference - 2.450000
+Simulation for [3, 2] with salience difference - 0.000000
+Simulation for [3, 2] with salience difference - 0.700000
+Simulation for [3, 2] with salience difference - 1.050000
+Simulation for [3, 2] with salience difference - 1.400000
+Simulation for [3, 2] with salience difference - 1.750000
+Simulation for [3, 2] with salience difference - 2.100000
+Simulation for [3, 2] with salience difference - 2.450000
+[[ 1.          1.          1.          1.          1.          1.          1.
+   1.          1.          1.          1.          1.          1.          1.
+   1.          1.          1.          1.          1.          1.          1.
+   1.          1.          1.          1.          1.          1.          1.
+   1.          1.          1.          1.          1.          1.          1.
+   1.          1.          1.          1.          1.          1.          1.
+   1.          1.          1.          1.          1.          1.          1.
+   1.        ]
+ [ 1.          1.          1.          1.          1.          1.          1.
+   1.          1.          1.          1.          1.          1.          1.
+   1.          1.          1.          1.          1.          1.          1.
+   1.          1.          1.          1.          1.          1.          1.
+   1.          1.          1.          1.          1.          1.          1.
+   1.          1.          1.          1.          1.          1.          1.
+   1.          1.          1.          1.          1.          1.          1.
+   1.        ]
+ [ 1.          1.          1.          1.          1.          1.          1.
+   1.          1.          1.          1.          1.          1.          1.
+   1.          1.          1.          1.          1.          1.          1.
+   1.          1.          1.          1.          1.          1.          1.
+   0.88235294  1.          1.          1.          1.          1.          1.
+   1.          1.          1.          1.          1.          0.95        1.
+   1.          1.          1.          1.          1.          1.          1.
+   1.        ]
+ [ 1.          1.          1.          1.          1.          1.          1.
+   1.          0.94736842  1.          1.          1.          1.          1.
+   0.4         1.          0.2         1.          1.          1.          1.
+   1.          1.          1.          1.          1.          1.          1.
+   0.15789474  0.55555556  1.          1.          1.          1.          1.
+   1.          1.          0.5         1.          1.          0.          1.
+   1.          1.          1.          0.5         1.          1.          1.
+   1.        ]
+ [ 0.95        1.          1.          1.          1.          1.          1.
+   1.          0.25        1.          1.          0.88888889  0.89473684
+   1.          0.          1.          0.          1.          0.94736842
+   0.84210526  1.          0.94736842  1.          1.          1.          1.
+   0.94736842  1.          0.          0.          1.          1.          0.95
+   1.          1.          1.          1.          0.          0.85        1.
+   0.          1.          1.          1.          1.          0.
+   0.94736842  1.          1.          0.89473684]
+ [ 0.70588235  0.68421053  0.75        0.38888889  0.52941176  0.7         0.75
+   0.5         0.          0.3         0.66666667  0.15        0.          0.5
+   0.          0.31578947  0.          0.82352941  0.5         0.05        0.9
+   0.26315789  0.10526316  0.78947368  0.3         0.75        0.55555556
+   0.4         0.          0.          0.88235294  0.94444444  0.52941176
+   0.31578947  0.94444444  0.10526316  0.55555556  0.          0.25
+   0.94117647  0.          0.89473684  0.88888889  0.5         0.89473684
+   0.          0.8125      0.58823529  0.94444444  0.1       ]
+ [ 0.05        0.          0.          0.          0.05        0.          0.
+   0.          0.          0.          0.          0.          0.          0.05
+   0.          0.          0.          0.          0.          0.
+   0.21052632  0.          0.          0.05263158  0.          0.05        0.
+   0.          0.          0.          0.21052632  0.05        0.          0.
+   0.15        0.          0.          0.          0.          0.1         0.
+   0.1         0.44444444  0.          0.05        0.          0.          0.
+   0.21052632  0.        ]]
+Simulation for [1, 0] with delay - 0 (ms)
+Simulation for [1, 0] with delay - 10 (ms)
+Simulation for [1, 0] with delay - 20 (ms)
+Simulation for [1, 0] with delay - 25 (ms)
+Simulation for [1, 0] with delay - 30 (ms)
+Simulation for [1, 0] with delay - 35 (ms)
+Simulation for [1, 0] with delay - 40 (ms)
+Simulation for [2, 0] with delay - 0 (ms)
+Simulation for [2, 0] with delay - 10 (ms)
+Simulation for [2, 0] with delay - 20 (ms)
+Simulation for [2, 0] with delay - 25 (ms)
+Simulation for [2, 0] with delay - 30 (ms)
+Simulation for [2, 0] with delay - 35 (ms)
+Simulation for [2, 0] with delay - 40 (ms)
+Simulation for [3, 0] with delay - 0 (ms)
+Simulation for [3, 0] with delay - 10 (ms)
+Simulation for [3, 0] with delay - 20 (ms)
+Simulation for [3, 0] with delay - 25 (ms)
+Simulation for [3, 0] with delay - 30 (ms)
+Simulation for [3, 0] with delay - 35 (ms)
+Simulation for [3, 0] with delay - 40 (ms)
+Simulation for [2, 1] with delay - 0 (ms)
+Simulation for [2, 1] with delay - 10 (ms)
+Simulation for [2, 1] with delay - 20 (ms)
+Simulation for [2, 1] with delay - 25 (ms)
+Simulation for [2, 1] with delay - 30 (ms)
+Simulation for [2, 1] with delay - 35 (ms)
+Simulation for [2, 1] with delay - 40 (ms)
+Simulation for [3, 1] with delay - 0 (ms)
+Simulation for [3, 1] with delay - 10 (ms)
+Simulation for [3, 1] with delay - 20 (ms)
+Simulation for [3, 1] with delay - 25 (ms)
+Simulation for [3, 1] with delay - 30 (ms)
+Simulation for [3, 1] with delay - 35 (ms)
+Simulation for [3, 1] with delay - 40 (ms)
+Simulation for [3, 2] with delay - 0 (ms)
+Simulation for [3, 2] with delay - 10 (ms)
+Simulation for [3, 2] with delay - 20 (ms)
+Simulation for [3, 2] with delay - 25 (ms)
+Simulation for [3, 2] with delay - 30 (ms)
+Simulation for [3, 2] with delay - 35 (ms)
+Simulation for [3, 2] with delay - 40 (ms)
