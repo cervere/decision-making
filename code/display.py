@@ -210,6 +210,31 @@ def plot_performance(fignum, figpos, num_trials, TP, title):
     plt.xlim(1,num_trials)
     #plt.title(title)
 
+def plot_performance_new(fignum, figpos, num_trials, TP, title):
+    # Plot the mean performance for each trial over all sessions
+    plt.figure(fignum)
+    pos = 210 + figpos
+    ax = plt.subplot(pos)
+    ax.patch.set_facecolor("w")
+    ax.spines['right'].set_color('none')
+    ax.spines['top'].set_color('none')
+    ax.yaxis.set_ticks_position('left')
+    ax.yaxis.set_tick_params(direction="in")
+    ax.xaxis.set_ticks_position('bottom')
+    ax.xaxis.set_tick_params(direction="in")
+
+    X = num_trials
+    plt.plot(X, TP.mean(axis=0), c='r', lw=2)
+    plt.plot(X, TP.mean(axis=0)+TP.var(axis=0), c='r',lw=.5)
+    plt.plot(X, TP.mean(axis=0)-TP.var(axis=0), c='r',lw=.5)
+    plt.fill_between(X, TP.mean(axis=0)+TP.var(axis=0),
+                        TP.mean(axis=0)-TP.var(axis=0), color='r', alpha=.1)
+    plt.xlabel(title, fontsize=16)
+    plt.ylabel("Performance", fontsize=16)
+    plt.ylim(0,1.0)
+    plt.xlim(num_trials[0], num_trials[-1])
+    plt.show()
+
 
 def autolabel(ax, rects):
     # attach some text labels

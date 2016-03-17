@@ -264,8 +264,10 @@ def run_session(stim=[], delay=0, salience=0):
 
 possible_cues = ([1,0],[2,0],[3,0],[2,1],[3,1],[3,2])
 # Introducing less rewarding stimulus with a salience
-saliences = np.array([0,10,15,20,25,30,35])*7.0/100
-delays = (0,10,20,25,30,35,40)
+#saliences = np.array([0,10,15,20,25,30,35])*7.0/100
+saliences = np.arange(36)*7.0/100
+#delays = (0,10,20,25,30,35,40)
+delays = np.arange(41)
 # Only one cue combination
 perf_for_salience = np.zeros((np.size(saliences), num_trials))
 #perf_for_salience = np.zeros((np.size(saliences),np.shape(possible_cues)[0])) 
@@ -324,7 +326,7 @@ else :
         performance_sal_del[str(stim)]["delay"] = mean_perf_delay
     
     #np.save("mean_perf_delay.npy", mean_perf_delay)
-    np.save("mean_perf_salience_delay_allcues.npy", performance_sal_del)
+    np.save("Feb_mean_perf_salience_delay_allcues.npy", performance_sal_del)
     #print mean_perf_delay
     exit()
 
